@@ -1,0 +1,8 @@
+prefix=/home/teame/catkin_ws/devel
+
+Name: pedestrian_perception
+Description: Description of pedestrian_perception
+Version: 0.0.0
+Cflags: 
+Libs: -L/home/teame/catkin_ws/devel/lib 
+Requires: 
