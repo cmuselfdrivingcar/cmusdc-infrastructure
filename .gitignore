@@ -14,7 +14,7 @@ devel/
 *.pyc
 *.user
 
-src/velodyne
+src/velodyne/
 
 *~
 
