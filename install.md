@@ -28,3 +28,8 @@ rosrun rviz rviz -f velodyne
 2. PCL Installation:
 rosdep install --from-paths src --ignore-src --rosdistro indigo -y
 
+#notes:
+uncomment #include "octree2buf_base.h" in /usr/include/pcl-1.7/pcl/octree/octree_pointcloud.h
+
+
+
