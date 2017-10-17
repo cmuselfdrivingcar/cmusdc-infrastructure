@@ -7,6 +7,6 @@
 SUBDIRS(gtest)
 SUBDIRS(velodyne/velodyne)
 SUBDIRS(velodyne/velodyne_msgs)
-SUBDIRS(pedestrian_perception)
+SUBDIRS(perception/background_subtraction)
 SUBDIRS(velodyne/velodyne_driver)
 SUBDIRS(velodyne/velodyne_pointcloud)

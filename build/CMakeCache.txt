@@ -296,6 +296,12 @@ actionlib_msgs_DIR:PATH=/opt/ros/indigo/share/actionlib_msgs/cmake
 //The directory containing a CMake configuration file for angles.
 angles_DIR:PATH=/opt/ros/indigo/share/angles/cmake
 
+//Value Computed by CMake
+background_subtraction_BINARY_DIR:STATIC=/home/teame/catkin_ws/build/perception/background_subtraction
+
+//Value Computed by CMake
+background_subtraction_SOURCE_DIR:STATIC=/home/teame/catkin_ws/src/perception/background_subtraction
+
 //The directory containing a CMake configuration file for bond.
 bond_DIR:PATH=/opt/ros/indigo/share/bond/cmake
 

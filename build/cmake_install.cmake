@@ -119,7 +119,7 @@ IF(NOT CMAKE_INSTALL_LOCAL_ONLY)
   INCLUDE("/home/teame/catkin_ws/build/gtest/cmake_install.cmake")
   INCLUDE("/home/teame/catkin_ws/build/velodyne/velodyne/cmake_install.cmake")
   INCLUDE("/home/teame/catkin_ws/build/velodyne/velodyne_msgs/cmake_install.cmake")
-  INCLUDE("/home/teame/catkin_ws/build/pedestrian_perception/cmake_install.cmake")
+  INCLUDE("/home/teame/catkin_ws/build/perception/background_subtraction/cmake_install.cmake")
   INCLUDE("/home/teame/catkin_ws/build/velodyne/velodyne_driver/cmake_install.cmake")
   INCLUDE("/home/teame/catkin_ws/build/velodyne/velodyne_pointcloud/cmake_install.cmake")
 
