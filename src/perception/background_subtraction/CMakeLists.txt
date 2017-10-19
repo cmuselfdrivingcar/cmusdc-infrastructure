@@ -17,6 +17,7 @@ find_package(catkin REQUIRED COMPONENTS
 
 find_package(PCL REQUIRED)
 
+
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 
@@ -125,6 +126,7 @@ include_directories(
   ${PCL_INCLUDE_DIRS}
 )
 
+
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
 #   src/${PROJECT_NAME}/background_subtraction.cpp
@@ -155,6 +157,7 @@ target_link_libraries(downsampling
   ${catkin_LIBRARIES}
   ${PCL_LIBRARIES}
 )
+
 
 #############
 ## Install ##
