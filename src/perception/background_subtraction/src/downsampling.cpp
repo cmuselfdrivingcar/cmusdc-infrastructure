@@ -18,6 +18,7 @@
 float resolution = 0.01f;
 
 ros::Publisher pub;
+ros::Publisher pub_original;
 ros::Subscriber sub;
 
 // pcl::octree::OctreePointCloudChangeDetector<pcl::PointXYZ> octree (resolution);
@@ -83,7 +84,7 @@ void cloud_callback (const sensor_msgs::PointCloud2ConstPtr& cloud_msg){
     
     std::vector<int> newPointIdxVector;
 
-    octree.getPointIndicesFromNewVoxels (newPointIdxVector, 7);
+    octree.getPointIndicesFromNewVoxels (newPointIdxVector, 4);
     std::cout << newPointIdxVector.size ()<< std::endl;
     ROS_INFO("----------END-----------");
 
@@ -98,15 +99,20 @@ void cloud_callback (const sensor_msgs::PointCloud2ConstPtr& cloud_msg){
       // std::cout << typeid(filtered_cloud->points[*it]).name()<< std::endl;
       // std::cout << filtered_cloud->points[*it].r<< std::endl;
     }
-    cloudA = cloudB;
+    // cloudA = cloudB;
 
     sensor_msgs::PointCloud2 output;
     // pcl::toROSMsg (*filtered_cloud, output);
     pcl::toROSMsg (*cloud_diff, output);
     output.header.frame_id = "velodyne";
     pub.publish(output);
+
+    sensor_msgs::PointCloud2 output2;
+    pcl::toROSMsg (*cloudB, output2);
+    pub_original.publish(output2);
   }
-  
+
+
 
   // pcl_conversions::fromPCL(cloud_filtered, output);
 
@@ -123,6 +129,7 @@ int main(int argc, char **argv)
   ros::init(argc, argv, "listener");
   ros::NodeHandle n;
   pub = n.advertise<sensor_msgs::PointCloud2>("/filterd_points", 1);
+  pub_original = n.advertise<sensor_msgs::PointCloud2>("/filterd_points_original", 1);
   sub = n.subscribe("/velodyne_points", 1, cloud_callback);
 
   ros::spin();
