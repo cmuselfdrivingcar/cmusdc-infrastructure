@@ -13,15 +13,15 @@
 #include <iostream>
 #include <vector>
 #include <ctime>
+#include <typeinfo>
 
-
-float resolution = 128.0f;
+float resolution = 0.01f;
 
 ros::Publisher pub;
 ros::Subscriber sub;
 
 // pcl::octree::OctreePointCloudChangeDetector<pcl::PointXYZ> octree (resolution);
-pcl::PointCloud<pcl::PointXYZ>::Ptr cloudA (new pcl::PointCloud<pcl::PointXYZ>);
+pcl::PointCloud<pcl::PointXYZRGBA>::Ptr cloudA (new pcl::PointCloud<pcl::PointXYZRGBA>);
 bool isFirstTime = true;
 
 void cloud_callback (const sensor_msgs::PointCloud2ConstPtr& cloud_msg){
@@ -37,58 +37,43 @@ void cloud_callback (const sensor_msgs::PointCloud2ConstPtr& cloud_msg){
   sor.setLeafSize (0.1, 0.1, 0.1);
   sor.filter (cloud_filtered);
 
-  sensor_msgs::PointCloud2 output;
-  pcl_conversions::fromPCL(cloud_filtered, output);
-
-  
-  pub.publish(output);
 
   // Octree
-
+  // pcl::PCLPointCloud2 filtered_cloud;
   if (isFirstTime) {
-    pcl::PointCloud<pcl::PointXYZ> mls_points;
+    // pcl::PointCloud<pcl::PointXYZRGBA> mls_points;
 
-    pcl::fromROSMsg (*cloud_msg, mls_points);
-    cloudA->resize(mls_points.size());
+    pcl::fromROSMsg (*cloud_msg, *cloudA);
+    // cloudA->resize(mls_points.size());
 
-    for (size_t i = 0; i < mls_points.points.size(); ++i) 
-    { 
-        cloudA->points[i].x=mls_points.points[i].x; //error 
-        cloudA->points[i].y=mls_points.points[i].y; //error 
-        cloudA->points[i].z=mls_points.points[i].z; //error 
-    }
+    // for (size_t i = 0; i < mls_points.points.size(); ++i) 
+    // { 
+    //     cloudA->points[i].x=mls_points.points[i].x; //error 
+    //     cloudA->points[i].y=mls_points.points[i].y; //error 
+    //     cloudA->points[i].z=mls_points.points[i].z; //error 
+    // }
     isFirstTime = false;
-    ROS_INFO("TEST");
   } else 
   {
     // cloud a
-    pcl::octree::OctreePointCloudChangeDetector<pcl::PointXYZ> octree (resolution);
+    pcl::octree::OctreePointCloudChangeDetector<pcl::PointXYZRGBA> octree (resolution);
 
 
     // cloud b
-    pcl::PointCloud<pcl::PointXYZ> mls_points;
-    pcl::PointCloud<pcl::PointXYZ>::Ptr cloudB (new pcl::PointCloud<pcl::PointXYZ>);
+    // pcl::PointCloud<pcl::PointXYZRGBA> mls_points;
+    pcl::PointCloud<pcl::PointXYZRGBA>::Ptr cloudB (new pcl::PointCloud<pcl::PointXYZRGBA>);
+    pcl::PointCloud<pcl::PointXYZRGBA>::Ptr cloud_diff (new pcl::PointCloud<pcl::PointXYZRGBA>);
 
-    pcl::fromROSMsg (*cloud_msg, mls_points);
-    cloudB->resize(mls_points.size());
+    pcl::fromROSMsg (*cloud_msg, *cloudB);
 
-    for (size_t i = 0; i < mls_points.points.size(); ++i) 
-    { 
-        cloudB->points[i].x=mls_points.points[i].x; //error 
-        cloudB->points[i].y=mls_points.points[i].y; //error 
-        cloudB->points[i].z=mls_points.points[i].z; //error 
-
-    }
-    isFirstTime = false;
     ROS_INFO("----------START-----------");
-    std::cout << cloudA->points.size ()<< std::endl;
+    // std::cout << cloudA->points.size ()<< std::endl;
     std::cout << cloudA->width<< std::endl;
     std::cout << cloudA->height<< std::endl;
-    std::cout << cloudB->points.size ()<< std::endl;
+    // std::cout << cloudB->points.size ()<< std::endl;
     std::cout << cloudB->width<< std::endl;
     std::cout << cloudB->height<< std::endl;
 
-    ROS_INFO("----------END-----------");
 
     octree.setInputCloud (cloudA);
     octree.addPointsFromInputCloud ();
@@ -98,27 +83,35 @@ void cloud_callback (const sensor_msgs::PointCloud2ConstPtr& cloud_msg){
     
     std::vector<int> newPointIdxVector;
 
-    octree.getPointIndicesFromNewVoxels (newPointIdxVector);
+    octree.getPointIndicesFromNewVoxels (newPointIdxVector, 7);
     std::cout << newPointIdxVector.size ()<< std::endl;
+    ROS_INFO("----------END-----------");
 
-    // ROS_INFO("Output from getPointIndicesFromNewVoxels:");
-    int j = 0;
-    for (size_t i = 0; i < newPointIdxVector.size (); ++i) {
-      ROS_INFO("%d",j);
-      j++;
-      // ROS_INFO(newPointIdxVector[i]);
-      // ROS_INFO(cloudPtr->points[newPointIdxVector[i]].x );
-      // ROS_INFO(cloudPtr->points[newPointIdxVector[i]].y );
-      // ROS_INFO(cloudPtr->points[newPointIdxVector[i]].z );
-      // ROS_INFO(i + "# Index: " + newPointIdxVector[i] + " Point:" 
-      //           + cloudPtr->points[newPointIdxVector[i]].x + " "
-      //           + cloudPtr->points[newPointIdxVector[i]].y + " "
-      //           + cloudPtr->points[newPointIdxVector[i]].z);
-      // ROS_INFO("TEST");
+
+    pcl::PointCloud<pcl::PointXYZRGBA>::Ptr filtered_cloud;
+    
+    filtered_cloud.reset (new pcl::PointCloud<pcl::PointXYZRGBA> (*cloudB));
+    for (std::vector<int>::iterator it = newPointIdxVector.begin (); it != newPointIdxVector.end (); ++it) {
+      // int32_t rgb = (255<<16) | (0 << 8) | 0;
+      // filtered_cloud->points[*it].rgba = *(float *)(&rgb);
+      cloud_diff->points.push_back(filtered_cloud->points[*it]);
+      // std::cout << typeid(filtered_cloud->points[*it]).name()<< std::endl;
+      // std::cout << filtered_cloud->points[*it].r<< std::endl;
     }
     cloudA = cloudB;
+
+    sensor_msgs::PointCloud2 output;
+    // pcl::toROSMsg (*filtered_cloud, output);
+    pcl::toROSMsg (*cloud_diff, output);
+    output.header.frame_id = "velodyne";
+    pub.publish(output);
   }
   
+
+  // pcl_conversions::fromPCL(cloud_filtered, output);
+
+  
+  // pub.publish(output);
 
   // pcl::PointCloud<pcl::PointXYZ>::Ptr cloudA (&PointCloudXYZ);
   // isFirstTime = false;
