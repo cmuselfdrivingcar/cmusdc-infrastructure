@@ -34,12 +34,12 @@ uncomment #include "octree2buf_base.h" in /usr/include/pcl-1.7/pcl/octree/octree
 
 
 # Launch Octomap Steps
+1. rosrun rviz rviz -f velodyne
+2.1 roslaunch velodyne_pointcloud 32e_points.launch calibration:=/home/teame/catkin_ws/PUCK_Calibration_File_2deg.yaml
+2.2 rosbag play -l *.bag 
+3. rosrun background_straction downsampling 
 
-1. roslaunch velodyne_pointcloud 32e_points.launch calibration:=/home/teame/catkin_ws/PUCK_Calibration_File_2deg.yaml
-2. roslaunch octomap_server octomap_mapping.launch
-3. rosbag play *.bag -l
-4. rosrun rviz rviz -f velodyne
-
+3. roslaunch octomap_server octomap_mapping.launch 
 
 
 

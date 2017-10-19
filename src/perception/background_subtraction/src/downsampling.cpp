@@ -15,7 +15,7 @@
 #include <ctime>
 #include <typeinfo>
 
-float resolution = 0.01f;
+float resolution = 0.1f;
 
 ros::Publisher pub;
 ros::Publisher pub_original;
@@ -84,7 +84,7 @@ void cloud_callback (const sensor_msgs::PointCloud2ConstPtr& cloud_msg){
     
     std::vector<int> newPointIdxVector;
 
-    octree.getPointIndicesFromNewVoxels (newPointIdxVector, 4);
+    octree.getPointIndicesFromNewVoxels (newPointIdxVector, 2);
     std::cout << newPointIdxVector.size ()<< std::endl;
     ROS_INFO("----------END-----------");
 
