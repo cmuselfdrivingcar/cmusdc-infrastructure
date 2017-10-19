@@ -41,5 +41,6 @@ uncomment #include "octree2buf_base.h" in /usr/include/pcl-1.7/pcl/octree/octree
 
 3. roslaunch octomap_server octomap_mapping.launch 
 
-
+# save background pcd
+rosrun pcl_ros pointcloud_to_pcd input:=/velodyne_points
 

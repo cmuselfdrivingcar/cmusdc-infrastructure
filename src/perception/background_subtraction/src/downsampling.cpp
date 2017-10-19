@@ -7,6 +7,18 @@
 #include <pcl/point_types.h>
 #include <pcl/filters/voxel_grid.h>
 #include <pcl/octree/octree_pointcloud_changedetector.h>
+
+#include <pcl/ModelCoefficients.h>
+#include <pcl/point_types.h>
+#include <pcl/io/pcd_io.h>
+#include <pcl/filters/extract_indices.h>
+#include <pcl/filters/voxel_grid.h>
+#include <pcl/features/normal_3d.h>
+#include <pcl/kdtree/kdtree.h>
+#include <pcl/sample_consensus/method_types.h>
+#include <pcl/sample_consensus/model_types.h>
+#include <pcl/segmentation/sac_segmentation.h>
+#include <pcl/segmentation/extract_clusters.h>
 // #include <pcl/octree/octree2buf_base.h>
 
 
@@ -18,110 +30,97 @@
 float resolution = 0.1f;
 
 ros::Publisher pub;
-ros::Publisher pub_original;
 ros::Subscriber sub;
 
+ros::Publisher pub_test;
+
 // pcl::octree::OctreePointCloudChangeDetector<pcl::PointXYZ> octree (resolution);
-pcl::PointCloud<pcl::PointXYZRGBA>::Ptr cloudA (new pcl::PointCloud<pcl::PointXYZRGBA>);
-bool isFirstTime = true;
+pcl::PointCloud<pcl::PointXYZ>::Ptr cloudA (new pcl::PointCloud<pcl::PointXYZ>);
+bool isFirstTime = false;
 
 void cloud_callback (const sensor_msgs::PointCloud2ConstPtr& cloud_msg){
 
-  pcl::PCLPointCloud2* cloud = new pcl::PCLPointCloud2; 
-  pcl::PCLPointCloud2ConstPtr cloudPtr(cloud);
-  pcl::PCLPointCloud2 cloud_filtered;
-
-  pcl_conversions::toPCL(*cloud_msg, *cloud);
-
-  pcl::VoxelGrid<pcl::PCLPointCloud2> sor;
-  sor.setInputCloud (cloudPtr);
-  sor.setLeafSize (0.1, 0.1, 0.1);
-  sor.filter (cloud_filtered);
+  // Filtering Object
+  // pcl::PCLPointCloud2* cloud = new pcl::PCLPointCloud2; 
+  // pcl::PCLPointCloud2ConstPtr cloudPtr(cloud);
+  // pcl::PCLPointCloud2 cloud_filtered;
+  // pcl_conversions::toPCL(*cloud_msg, *cloud);
+  // pcl::VoxelGrid<pcl::PCLPointCloud2> sor;
+  // sor.setInputCloud (cloudPtr);
+  // sor.setLeafSize (0.1, 0.1, 0.1);
+  // sor.filter (cloud_filtered);  
+  // pcl_conversions::fromPCL(cloud_filtered, output);
+  // pub.publish(output);
 
 
   // Octree
-  // pcl::PCLPointCloud2 filtered_cloud;
-  if (isFirstTime) {
-    // pcl::PointCloud<pcl::PointXYZRGBA> mls_points;
+  // cloud a
+  pcl::octree::OctreePointCloudChangeDetector<pcl::PointXYZ> octree (resolution);
 
-    pcl::fromROSMsg (*cloud_msg, *cloudA);
-    // cloudA->resize(mls_points.size());
+  // cloud b
+  pcl::PointCloud<pcl::PointXYZ>::Ptr cloudB (new pcl::PointCloud<pcl::PointXYZ>);
+  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_diff (new pcl::PointCloud<pcl::PointXYZ>);
 
-    // for (size_t i = 0; i < mls_points.points.size(); ++i) 
-    // { 
-    //     cloudA->points[i].x=mls_points.points[i].x; //error 
-    //     cloudA->points[i].y=mls_points.points[i].y; //error 
-    //     cloudA->points[i].z=mls_points.points[i].z; //error 
-    // }
-    isFirstTime = false;
-  } else 
+  pcl::fromROSMsg (*cloud_msg, *cloudB);
+
+  octree.setInputCloud (cloudA);
+  octree.addPointsFromInputCloud ();
+  octree.switchBuffers ();
+  octree.setInputCloud (cloudB);
+  octree.addPointsFromInputCloud ();
+  
+  std::vector<int> newPointIdxVector;
+
+  octree.getPointIndicesFromNewVoxels (newPointIdxVector, 3);
+  std::cout << newPointIdxVector.size ()<< std::endl;
+
+
+  pcl::PointCloud<pcl::PointXYZ>::Ptr filtered_cloud;
+  
+  filtered_cloud.reset (new pcl::PointCloud<pcl::PointXYZ> (*cloudB));
+  for (std::vector<int>::iterator it = newPointIdxVector.begin (); it != newPointIdxVector.end (); ++it) {
+    cloud_diff->points.push_back(filtered_cloud->points[*it]);
+  }
+
+  sensor_msgs::PointCloud2 output;
+  pcl::toROSMsg (*cloud_diff, output);
+  output.header.frame_id = "velodyne";
+  pub.publish(output);
+
+
+  // Creating the KdTree object for the search method of the extraction
+  pcl::PCDWriter writer;
+  pcl::search::KdTree<pcl::PointXYZ>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZ>);
+  tree->setInputCloud (cloud_diff);
+
+  std::vector<pcl::PointIndices> cluster_indices;
+  pcl::EuclideanClusterExtraction<pcl::PointXYZ> ec;
+  ec.setClusterTolerance (0.02); // 2cm
+  ec.setMinClusterSize (100);
+  ec.setMaxClusterSize (25000);
+  ec.setSearchMethod (tree);
+  ec.setInputCloud (cloud_diff);
+  ec.extract (cluster_indices);
+
+  int j = 0;
+  std::cout << cluster_indices.size ()<< std::endl;
+  for (std::vector<pcl::PointIndices>::const_iterator it = cluster_indices.begin (); it != cluster_indices.end (); ++it)
   {
-    // cloud a
-    pcl::octree::OctreePointCloudChangeDetector<pcl::PointXYZRGBA> octree (resolution);
+    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_cluster (new pcl::PointCloud<pcl::PointXYZ>);
+    for (std::vector<int>::const_iterator pit = it->indices.begin (); pit != it->indices.end (); ++pit)
+      cloud_cluster->points.push_back (cloud_diff->points[*pit]); //*
+    cloud_cluster->width = cloud_cluster->points.size ();
+    cloud_cluster->height = 1;
+    cloud_cluster->is_dense = true;
 
-
-    // cloud b
-    // pcl::PointCloud<pcl::PointXYZRGBA> mls_points;
-    pcl::PointCloud<pcl::PointXYZRGBA>::Ptr cloudB (new pcl::PointCloud<pcl::PointXYZRGBA>);
-    pcl::PointCloud<pcl::PointXYZRGBA>::Ptr cloud_diff (new pcl::PointCloud<pcl::PointXYZRGBA>);
-
-    pcl::fromROSMsg (*cloud_msg, *cloudB);
-
-    ROS_INFO("----------START-----------");
-    // std::cout << cloudA->points.size ()<< std::endl;
-    std::cout << cloudA->width<< std::endl;
-    std::cout << cloudA->height<< std::endl;
-    // std::cout << cloudB->points.size ()<< std::endl;
-    std::cout << cloudB->width<< std::endl;
-    std::cout << cloudB->height<< std::endl;
-
-
-    octree.setInputCloud (cloudA);
-    octree.addPointsFromInputCloud ();
-    octree.switchBuffers ();
-    octree.setInputCloud (cloudB);
-    octree.addPointsFromInputCloud ();
-    
-    std::vector<int> newPointIdxVector;
-
-    octree.getPointIndicesFromNewVoxels (newPointIdxVector, 2);
-    std::cout << newPointIdxVector.size ()<< std::endl;
-    ROS_INFO("----------END-----------");
-
-
-    pcl::PointCloud<pcl::PointXYZRGBA>::Ptr filtered_cloud;
-    
-    filtered_cloud.reset (new pcl::PointCloud<pcl::PointXYZRGBA> (*cloudB));
-    for (std::vector<int>::iterator it = newPointIdxVector.begin (); it != newPointIdxVector.end (); ++it) {
-      // int32_t rgb = (255<<16) | (0 << 8) | 0;
-      // filtered_cloud->points[*it].rgba = *(float *)(&rgb);
-      cloud_diff->points.push_back(filtered_cloud->points[*it]);
-      // std::cout << typeid(filtered_cloud->points[*it]).name()<< std::endl;
-      // std::cout << filtered_cloud->points[*it].r<< std::endl;
-    }
-    // cloudA = cloudB;
-
-    sensor_msgs::PointCloud2 output;
-    // pcl::toROSMsg (*filtered_cloud, output);
-    pcl::toROSMsg (*cloud_diff, output);
-    output.header.frame_id = "velodyne";
-    pub.publish(output);
-
-    sensor_msgs::PointCloud2 output2;
-    pcl::toROSMsg (*cloudB, output2);
-    pub_original.publish(output2);
+    std::cout << "PointCloud representing the Cluster: " << cloud_cluster->points.size () << " data points." << std::endl;
+    std::stringstream ss;
+    ss << "cloud_cluster_" << j << ".pcd";
+    writer.write<pcl::PointXYZ> (ss.str (), *cloud_cluster, false); //*
+    j++;
   }
 
 
-
-  // pcl_conversions::fromPCL(cloud_filtered, output);
-
-  
-  // pub.publish(output);
-
-  // pcl::PointCloud<pcl::PointXYZ>::Ptr cloudA (&PointCloudXYZ);
-  // isFirstTime = false;
-  // ROS_INFO("TEST");
 }
 
 int main(int argc, char **argv)
@@ -129,8 +128,13 @@ int main(int argc, char **argv)
   ros::init(argc, argv, "listener");
   ros::NodeHandle n;
   pub = n.advertise<sensor_msgs::PointCloud2>("/filterd_points", 1);
-  pub_original = n.advertise<sensor_msgs::PointCloud2>("/filterd_points_original", 1);
+  pub_test = n.advertise<sensor_msgs::PointCloud2>("/test_points", 1);
   sub = n.subscribe("/velodyne_points", 1, cloud_callback);
+  if (pcl::io::loadPCDFile<pcl::PointXYZ> ("background.pcd", *cloudA) == -1) //* load the file
+  {
+    PCL_ERROR ("Couldn't read file test_pcd.pcd \n");
+    return (-1);
+  }
 
   ros::spin();
   return 0;
