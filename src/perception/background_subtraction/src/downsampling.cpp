@@ -83,7 +83,7 @@ void cloud_callback (const sensor_msgs::PointCloud2ConstPtr& cloud_msg){
   std::vector<int> newPointIdxVector;
 
   octree.getPointIndicesFromNewVoxels (newPointIdxVector, 3);
-  std::cout << newPointIdxVector.size ()<< std::endl;
+  // std::cout << newPointIdxVector.size ()<< std::endl;
 
 
   pcl::PointCloud<pcl::PointXYZ>::Ptr filtered_cloud;
@@ -113,15 +113,13 @@ void cloud_callback (const sensor_msgs::PointCloud2ConstPtr& cloud_msg){
   ec.extract (cluster_indices);
 
   int j = 0;
-  std::cout << "cluster size: " << cluster_indices.size ()<< std::endl;
+  // std::cout << "cluster size: " << cluster_indices.size ()<< std::endl;
+  std::cout << "\n"<< std::endl;
   pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_cluster (new pcl::PointCloud<pcl::PointXYZ>);
   pcl::PointCloud<pcl::PointXYZRGB>::Ptr centroid_cluster (new pcl::PointCloud<pcl::PointXYZRGB>);
 
   for (std::vector<pcl::PointIndices>::const_iterator it = cluster_indices.begin (); it != cluster_indices.end (); ++it)
   {
-    // CentroidPoint<pcl::PointXYZ> centroidPoints;
-    // CentroidPoint<pcl::PointXYZ> centroidPoints;
-    // pcl::CentroidPoint<pcl::PointXYZ> centroidPoints;
     for (std::vector<int>::const_iterator pit = it->indices.begin (); pit != it->indices.end (); ++pit) {
       cloud_cluster->points.push_back (cloud_diff->points[*pit]); //*
     }
@@ -131,6 +129,7 @@ void cloud_callback (const sensor_msgs::PointCloud2ConstPtr& cloud_msg){
 
     pcl::PointXYZRGB centroid;
     centroid.getVector4fMap() = ci;
+    std::cout << "pedestrian #" << j << "\t x: " << ci[0] << " y:"<< ci[1]<< std::endl;
     centroid.r = 255;
     centroid.g = 0;
     centroid.b = 0;
@@ -139,7 +138,7 @@ void cloud_callback (const sensor_msgs::PointCloud2ConstPtr& cloud_msg){
     cloud_cluster->height = 1;
     cloud_cluster->is_dense = true;
 
-    std::cout << "PointCloud representing the Cluster: " << cloud_cluster->points.size () << " data points." << std::endl;
+    // std::cout << "PointCloud representing the Cluster: " << cloud_cluster->points.size () << " data points." << std::endl;
     j++;
   }
 
