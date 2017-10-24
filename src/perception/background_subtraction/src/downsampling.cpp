@@ -9,7 +9,6 @@
 #include <pcl/octree/octree_pointcloud_changedetector.h>
 
 #include <pcl/ModelCoefficients.h>
-#include <pcl/point_types.h>
 #include <pcl/io/pcd_io.h>
 #include <pcl/filters/extract_indices.h>
 #include <pcl/filters/voxel_grid.h>
@@ -19,8 +18,17 @@
 #include <pcl/sample_consensus/model_types.h>
 #include <pcl/segmentation/sac_segmentation.h>
 #include <pcl/segmentation/extract_clusters.h>
-// #include <pcl/octree/octree2buf_base.h>
+#include <pcl/common/centroid.h>
 
+#include <gtest/gtest.h>
+#include <pcl/common/common.h>
+#include <pcl/common/distances.h>
+#include <pcl/common/intersections.h>
+#include <pcl/common/io.h>
+#include <pcl/common/eigen.h>
+#include <pcl/point_types.h>
+#include <pcl/point_cloud.h>
+#include <pcl/pcl_tests.h>
 
 #include <iostream>
 #include <vector>
@@ -29,10 +37,10 @@
 
 float resolution = 0.1f;
 
-ros::Publisher pub;
+ros::Publisher pub_backgroundsub;
+ros::Publisher pub_cluster;
+ros::Publisher pub_boudingbox;
 ros::Subscriber sub;
-
-ros::Publisher pub_test;
 
 // pcl::octree::OctreePointCloudChangeDetector<pcl::PointXYZ> octree (resolution);
 pcl::PointCloud<pcl::PointXYZ>::Ptr cloudA (new pcl::PointCloud<pcl::PointXYZ>);
@@ -51,6 +59,7 @@ void cloud_callback (const sensor_msgs::PointCloud2ConstPtr& cloud_msg){
   // sor.filter (cloud_filtered);  
   // pcl_conversions::fromPCL(cloud_filtered, output);
   // pub.publish(output);
+
 
 
   // Octree
@@ -85,17 +94,16 @@ void cloud_callback (const sensor_msgs::PointCloud2ConstPtr& cloud_msg){
   sensor_msgs::PointCloud2 output;
   pcl::toROSMsg (*cloud_diff, output);
   output.header.frame_id = "velodyne";
-  pub.publish(output);
+  pub_backgroundsub.publish(output);
 
 
   // Creating the KdTree object for the search method of the extraction
-  pcl::PCDWriter writer;
   pcl::search::KdTree<pcl::PointXYZ>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZ>);
   tree->setInputCloud (cloud_diff);
 
   std::vector<pcl::PointIndices> cluster_indices;
   pcl::EuclideanClusterExtraction<pcl::PointXYZ> ec;
-  ec.setClusterTolerance (0.02); // 2cm
+  ec.setClusterTolerance (0.1); // 2cm
   ec.setMinClusterSize (100);
   ec.setMaxClusterSize (25000);
   ec.setSearchMethod (tree);
@@ -103,34 +111,57 @@ void cloud_callback (const sensor_msgs::PointCloud2ConstPtr& cloud_msg){
   ec.extract (cluster_indices);
 
   int j = 0;
-  std::cout << cluster_indices.size ()<< std::endl;
+  std::cout << "cluster size: " << cluster_indices.size ()<< std::endl;
+  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_cluster (new pcl::PointCloud<pcl::PointXYZ>);
+  pcl::PointCloud<pcl::PointXYZRGB>::Ptr centroid_cluster (new pcl::PointCloud<pcl::PointXYZRGB>);
+
   for (std::vector<pcl::PointIndices>::const_iterator it = cluster_indices.begin (); it != cluster_indices.end (); ++it)
   {
-    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_cluster (new pcl::PointCloud<pcl::PointXYZ>);
-    for (std::vector<int>::const_iterator pit = it->indices.begin (); pit != it->indices.end (); ++pit)
+    // CentroidPoint<pcl::PointXYZ> centroidPoints;
+    // CentroidPoint<pcl::PointXYZ> centroidPoints;
+    // pcl::CentroidPoint<pcl::PointXYZ> centroidPoints;
+    for (std::vector<int>::const_iterator pit = it->indices.begin (); pit != it->indices.end (); ++pit) {
       cloud_cluster->points.push_back (cloud_diff->points[*pit]); //*
+    }
+
+    Eigen::Vector4f ci;
+    pcl::compute3DCentroid (*cloud_cluster, ci);
+
+    pcl::PointXYZRGB centroid;
+    centroid.getVector4fMap() = ci;
+    centroid.r = 255;
+    centroid.g = 0;
+    centroid.b = 0;
+    centroid_cluster->points.push_back(centroid);
     cloud_cluster->width = cloud_cluster->points.size ();
     cloud_cluster->height = 1;
     cloud_cluster->is_dense = true;
 
     std::cout << "PointCloud representing the Cluster: " << cloud_cluster->points.size () << " data points." << std::endl;
-    std::stringstream ss;
-    ss << "cloud_cluster_" << j << ".pcd";
-    writer.write<pcl::PointXYZ> (ss.str (), *cloud_cluster, false); //*
     j++;
   }
 
+  sensor_msgs::PointCloud2 cluster_output;
+  pcl::toROSMsg (*cloud_cluster, cluster_output);
+  cluster_output.header.frame_id = "velodyne";
+  pub_cluster.publish(cluster_output);
 
+  // Centroid
+  sensor_msgs::PointCloud2 centroid_output;
+  pcl::toROSMsg (*centroid_cluster, centroid_output);
+  centroid_output.header.frame_id = "velodyne";
+  pub_boudingbox.publish(centroid_output);
 }
 
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "listener");
   ros::NodeHandle n;
-  pub = n.advertise<sensor_msgs::PointCloud2>("/filterd_points", 1);
-  pub_test = n.advertise<sensor_msgs::PointCloud2>("/test_points", 1);
+  pub_backgroundsub = n.advertise<sensor_msgs::PointCloud2>("/filterd_points", 1);
+  pub_cluster = n.advertise<sensor_msgs::PointCloud2>("/clustered_points", 1);
+  pub_boudingbox = n.advertise<sensor_msgs::PointCloud2>("/bbox_points", 1);
   sub = n.subscribe("/velodyne_points", 1, cloud_callback);
-  if (pcl::io::loadPCDFile<pcl::PointXYZ> ("background.pcd", *cloudA) == -1) //* load the file
+  if (pcl::io::loadPCDFile<pcl::PointXYZ> ("background_lab.pcd", *cloudA) == -1) //* load the file
   {
     PCL_ERROR ("Couldn't read file test_pcd.pcd \n");
     return (-1);
