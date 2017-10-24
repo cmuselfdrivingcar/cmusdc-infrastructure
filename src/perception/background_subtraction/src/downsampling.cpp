@@ -19,16 +19,7 @@
 #include <pcl/segmentation/sac_segmentation.h>
 #include <pcl/segmentation/extract_clusters.h>
 #include <pcl/common/centroid.h>
-
-#include <gtest/gtest.h>
-#include <pcl/common/common.h>
-#include <pcl/common/distances.h>
-#include <pcl/common/intersections.h>
-#include <pcl/common/io.h>
 #include <pcl/common/eigen.h>
-#include <pcl/point_types.h>
-#include <pcl/point_cloud.h>
-#include <pcl/pcl_tests.h>
 
 #include <iostream>
 #include <vector>
@@ -60,13 +51,24 @@ void cloud_callback (const sensor_msgs::PointCloud2ConstPtr& cloud_msg){
   // pcl_conversions::fromPCL(cloud_filtered, output);
   // pub.publish(output);
 
+  // remove outliners
+  // pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZ>);
+  // pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
+  // pcl::fromROSMsg (*cloud_msg, *cloud);
 
+  // pcl::StatisticalOutlierRemoval<pcl::PointXYZ> sor;
+  // sor.setInputCloud (cloud);
+  // sor.setMeanK (50);
+  // sor.setStddevMulThresh (1.0);
+  // sor.filter (*cloud_filtered);
+
+  // sensor_msgs::PointCloud2 output_outliners;
+  // pcl::toROSMsg (*cloud_filtered, output_outliners);
+  // output_outliners.header.frame_id = "velodyne";
+  // pub_backgroundsub.publish(output_outliners);
 
   // Octree
-  // cloud a
   pcl::octree::OctreePointCloudChangeDetector<pcl::PointXYZ> octree (resolution);
-
-  // cloud b
   pcl::PointCloud<pcl::PointXYZ>::Ptr cloudB (new pcl::PointCloud<pcl::PointXYZ>);
   pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_diff (new pcl::PointCloud<pcl::PointXYZ>);
 
