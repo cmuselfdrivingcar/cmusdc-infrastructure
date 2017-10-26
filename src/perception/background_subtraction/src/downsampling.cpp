@@ -128,6 +128,8 @@ void cloud_callback (const sensor_msgs::PointCloud2ConstPtr& cloud_msg){
 
   for (std::vector<pcl::PointIndices>::const_iterator it = cluster_indices.begin (); it != cluster_indices.end (); ++it)
   {
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr single_pedestrian_cluster (new pcl::PointCloud<pcl::PointXYZRGB>);
+
     for (std::vector<int>::const_iterator pit = it->indices.begin (); pit != it->indices.end (); ++pit) {
       pcl::PointXYZRGB cloud_xyzrgb;
       cloud_xyzrgb.x = cloud_diff_euclidean->points[*pit].x;
@@ -136,10 +138,11 @@ void cloud_callback (const sensor_msgs::PointCloud2ConstPtr& cloud_msg){
       
       cloud_xyzrgb.r = 30 * j;
       cloud_cluster->points.push_back (cloud_xyzrgb);
+      single_pedestrian_cluster->points.push_back (cloud_xyzrgb);
     }
 
     Eigen::Vector4f ci;
-    pcl::compute3DCentroid (*cloud_cluster, ci);
+    pcl::compute3DCentroid (*single_pedestrian_cluster, ci);
 
     pcl::PointXYZRGB centroid;
     centroid.getVector4fMap() = ci;
@@ -148,9 +151,9 @@ void cloud_callback (const sensor_msgs::PointCloud2ConstPtr& cloud_msg){
     centroid.g = 0;
     centroid.b = 0;
     centroid_cluster->points.push_back(centroid);
-    cloud_cluster->width = cloud_cluster->points.size ();
-    cloud_cluster->height = 1;
-    cloud_cluster->is_dense = true;
+    // cloud_cluster->width = cloud_cluster->points.size ();
+    // cloud_cluster->height = 1;
+    // cloud_cluster->is_dense = true;
 
     // std::cout << "PointCloud representing the Cluster: " << cloud_cluster->points.size () << " data points." << std::endl;
     j++;
