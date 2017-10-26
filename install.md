@@ -44,3 +44,5 @@ uncomment #include "octree2buf_base.h" in /usr/include/pcl-1.7/pcl/octree/octree
 # save background pcd
 rosrun pcl_ros pointcloud_to_pcd input:=/velodyne_points
 
+# visualize background.pcd
+rosrun pcl_ros pcd_to_pointcloud /home/teame/catkin_ws/background.pcd 0.1 _frame_id:=/velodyne
