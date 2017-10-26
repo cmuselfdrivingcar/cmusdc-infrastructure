@@ -105,8 +105,8 @@ void cloud_callback (const sensor_msgs::PointCloud2ConstPtr& cloud_msg){
 
   std::vector<pcl::PointIndices> cluster_indices;
   pcl::EuclideanClusterExtraction<pcl::PointXYZ> ec;
-  ec.setClusterTolerance (0.1); // 2cm
-  ec.setMinClusterSize (100);
+  ec.setClusterTolerance (0.2);
+  ec.setMinClusterSize (10);
   ec.setMaxClusterSize (25000);
   ec.setSearchMethod (tree);
   ec.setInputCloud (cloud_diff);
@@ -115,13 +115,19 @@ void cloud_callback (const sensor_msgs::PointCloud2ConstPtr& cloud_msg){
   int j = 0;
   // std::cout << "cluster size: " << cluster_indices.size ()<< std::endl;
   std::cout << "\n"<< std::endl;
-  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_cluster (new pcl::PointCloud<pcl::PointXYZ>);
+  pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_cluster (new pcl::PointCloud<pcl::PointXYZRGB>);
   pcl::PointCloud<pcl::PointXYZRGB>::Ptr centroid_cluster (new pcl::PointCloud<pcl::PointXYZRGB>);
 
   for (std::vector<pcl::PointIndices>::const_iterator it = cluster_indices.begin (); it != cluster_indices.end (); ++it)
   {
     for (std::vector<int>::const_iterator pit = it->indices.begin (); pit != it->indices.end (); ++pit) {
-      cloud_cluster->points.push_back (cloud_diff->points[*pit]); //*
+      pcl::PointXYZRGB cloud_xyzrgb;
+      cloud_xyzrgb.x = cloud_diff->points[*pit].x;
+      cloud_xyzrgb.y = cloud_diff->points[*pit].y;
+      cloud_xyzrgb.z = cloud_diff->points[*pit].z;
+      
+      cloud_xyzrgb.r = 30 * j;
+      cloud_cluster->points.push_back (cloud_xyzrgb);
     }
 
     Eigen::Vector4f ci;
@@ -162,7 +168,7 @@ int main(int argc, char **argv)
   pub_cluster = n.advertise<sensor_msgs::PointCloud2>("/clustered_points", 1);
   pub_boudingbox = n.advertise<sensor_msgs::PointCloud2>("/bbox_points", 1);
   sub = n.subscribe("/velodyne_points", 1, cloud_callback);
-  if (pcl::io::loadPCDFile<pcl::PointXYZ> ("background_lab.pcd", *cloudA) == -1) //* load the file
+  if (pcl::io::loadPCDFile<pcl::PointXYZ> ("background.pcd", *cloudA) == -1) //* load the file
   {
     PCL_ERROR ("Couldn't read file test_pcd.pcd \n");
     return (-1);
