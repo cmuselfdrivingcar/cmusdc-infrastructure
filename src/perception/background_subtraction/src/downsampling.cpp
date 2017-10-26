@@ -71,6 +71,7 @@ void cloud_callback (const sensor_msgs::PointCloud2ConstPtr& cloud_msg){
   pcl::octree::OctreePointCloudChangeDetector<pcl::PointXYZ> octree (resolution);
   pcl::PointCloud<pcl::PointXYZ>::Ptr cloudB (new pcl::PointCloud<pcl::PointXYZ>);
   pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_diff (new pcl::PointCloud<pcl::PointXYZ>);
+  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_diff_euclidean (new pcl::PointCloud<pcl::PointXYZ>);
 
   pcl::fromROSMsg (*cloud_msg, *cloudB);
 
@@ -91,6 +92,13 @@ void cloud_callback (const sensor_msgs::PointCloud2ConstPtr& cloud_msg){
   filtered_cloud.reset (new pcl::PointCloud<pcl::PointXYZ> (*cloudB));
   for (std::vector<int>::iterator it = newPointIdxVector.begin (); it != newPointIdxVector.end (); ++it) {
     cloud_diff->points.push_back(filtered_cloud->points[*it]);
+
+    pcl::PointXYZ cloud_xyz;
+    cloud_xyz.x = filtered_cloud->points[*it].x;
+    cloud_xyz.y = filtered_cloud->points[*it].y;
+    cloud_xyz.z = 1;
+
+    cloud_diff_euclidean->points.push_back(cloud_xyz);
   }
 
   sensor_msgs::PointCloud2 output;
@@ -101,7 +109,7 @@ void cloud_callback (const sensor_msgs::PointCloud2ConstPtr& cloud_msg){
 
   // Creating the KdTree object for the search method of the extraction
   pcl::search::KdTree<pcl::PointXYZ>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZ>);
-  tree->setInputCloud (cloud_diff);
+  tree->setInputCloud (cloud_diff_euclidean);
 
   std::vector<pcl::PointIndices> cluster_indices;
   pcl::EuclideanClusterExtraction<pcl::PointXYZ> ec;
@@ -109,7 +117,7 @@ void cloud_callback (const sensor_msgs::PointCloud2ConstPtr& cloud_msg){
   ec.setMinClusterSize (10);
   ec.setMaxClusterSize (25000);
   ec.setSearchMethod (tree);
-  ec.setInputCloud (cloud_diff);
+  ec.setInputCloud (cloud_diff_euclidean);
   ec.extract (cluster_indices);
 
   int j = 0;
@@ -122,8 +130,8 @@ void cloud_callback (const sensor_msgs::PointCloud2ConstPtr& cloud_msg){
   {
     for (std::vector<int>::const_iterator pit = it->indices.begin (); pit != it->indices.end (); ++pit) {
       pcl::PointXYZRGB cloud_xyzrgb;
-      cloud_xyzrgb.x = cloud_diff->points[*pit].x;
-      cloud_xyzrgb.y = cloud_diff->points[*pit].y;
+      cloud_xyzrgb.x = cloud_diff_euclidean->points[*pit].x;
+      cloud_xyzrgb.y = cloud_diff_euclidean->points[*pit].y;
       cloud_xyzrgb.z = cloud_diff->points[*pit].z;
       
       cloud_xyzrgb.r = 30 * j;
