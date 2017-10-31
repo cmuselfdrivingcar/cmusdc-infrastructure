@@ -30,7 +30,7 @@ float resolution = 0.1f;
 
 ros::Publisher pub_backgroundsub;
 ros::Publisher pub_cluster;
-ros::Publisher pub_boudingbox;
+ros::Publisher pub_centroid;
 ros::Subscriber sub;
 
 // pcl::octree::OctreePointCloudChangeDetector<pcl::PointXYZ> octree (resolution);
@@ -168,20 +168,20 @@ void cloud_callback (const sensor_msgs::PointCloud2ConstPtr& cloud_msg){
   sensor_msgs::PointCloud2 centroid_output;
   pcl::toROSMsg (*centroid_cluster, centroid_output);
   centroid_output.header.frame_id = "velodyne";
-  pub_boudingbox.publish(centroid_output);
+  pub_centroid.publish(centroid_output);
 }
 
 int main(int argc, char **argv)
 {
-  ros::init(argc, argv, "listener");
+  ros::init(argc, argv, "downsampling");
   ros::NodeHandle n;
-  pub_backgroundsub = n.advertise<sensor_msgs::PointCloud2>("/filterd_points", 1);
-  pub_cluster = n.advertise<sensor_msgs::PointCloud2>("/clustered_points", 1);
-  pub_boudingbox = n.advertise<sensor_msgs::PointCloud2>("/bbox_points", 1);
+  pub_backgroundsub = n.advertise<sensor_msgs::PointCloud2>("/filterd_points", 10);
+  pub_cluster = n.advertise<sensor_msgs::PointCloud2>("/clustered_points", 10);
+  pub_centroid = n.advertise<sensor_msgs::PointCloud2>("/centroid_points", 10);
   sub = n.subscribe("/velodyne_points", 1, cloud_callback);
   if (pcl::io::loadPCDFile<pcl::PointXYZ> ("background.pcd", *cloudA) == -1) //* load the file
   {
-    PCL_ERROR ("Couldn't read file test_pcd.pcd \n");
+    PCL_ERROR ("Couldn't read file background.pcd \n");
     return (-1);
   }
 
