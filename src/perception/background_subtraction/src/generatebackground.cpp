@@ -9,36 +9,39 @@
 int main (int argc, char** argv)
 {
   pcl::PointCloud<pcl::PointXYZ>::Ptr background (new pcl::PointCloud<pcl::PointXYZ>);
-
-  for (int i=1; i<=25; i++) {
-    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
-    std::stringstream ss;
-    ss << i;
-    std::string name = ss.str();
-    std::string fullName = "/home/teame/Desktop/background_raw/"+name+".pcd";
-    if (pcl::io::loadPCDFile<pcl::PointXYZ> (fullName, *cloud) == -1) //* load the file
-    {
-      // PCL_ERROR ("Couldn't read file " + name + ".pcd \n");
-      return (-1);
+  DIR *dir;
+  struct dirent *ent;
+  if ((dir = opendir ("/home/teame16/Desktop/background_raw/Version3/")) != NULL) {
+    /* print all the files and directories within directory */
+    while ((ent = readdir (dir)) != NULL) {
+      if (strcmp(ent->d_name,".") == 0 || strcmp(ent->d_name,"..") == 0 )
+        continue;
+      // printf ("%s\n", ent->d_name);
+      pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
+      // std::stringstream ss;
+      // ss << i;
+      char fullName[1000];
+      // std::string name = ent->d_name;
+      // std::string fullName = "/home/teame16/Desktop/background_raw/Version3/"+ent->d_name;
+      strcpy (fullName,"/home/teame16/Desktop/background_raw/Version3/");
+      strcat (fullName,ent->d_name);
+      printf ("%s\n", fullName);
+      if (pcl::io::loadPCDFile<pcl::PointXYZ> (fullName, *cloud) == -1) //* load the file
+      {
+        return (-1);
+      }
+      *background+=*cloud;
+      std::cout << ent->d_name
+                << " Finished"
+                << std::endl;
     }
-    // std::cout << "Loaded "
-    //           << cloud->width * cloud->height
-    //           << " data points from <<"
-    //           << name
-    //           << ".pcd with the following fields: "
-    //           << std::endl;
-    // for (size_t i = 0; i < cloud->points.size (); ++i)
-    //   std::cout << "    " << cloud->points[i].x
-    //             << " "    << cloud->points[i].y
-    //             << " "    << cloud->points[i].z << std::endl;
-
-    // pcl::concatenateFields (*cloud, *background, *background);
-    *background+=*cloud;
-    std::cout << name
-              << ".pcd Finished"
-              << std::endl;
+    closedir (dir);
+  } else {
+    /* could not open directory */
+    perror ("");
+    return EXIT_FAILURE;
   }
   
-  pcl::io::savePCDFileASCII ("background_newewew.pcd", *background);
+  pcl::io::savePCDFileASCII ("background_neweweNewew.pcd", *background);
   return (0);
 }
