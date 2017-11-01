@@ -26,7 +26,7 @@
 #include <ctime>
 #include <typeinfo>
 
-float resolution = 0.01f;
+float resolution = 0.5f;
 
 ros::Publisher pub_backgroundsub;
 ros::Publisher pub_cluster;
@@ -113,8 +113,8 @@ void cloud_callback (const sensor_msgs::PointCloud2ConstPtr& cloud_msg){
 
   std::vector<pcl::PointIndices> cluster_indices;
   pcl::EuclideanClusterExtraction<pcl::PointXYZ> ec;
-  ec.setClusterTolerance (0.2);
-  ec.setMinClusterSize (10);
+  ec.setClusterTolerance (0.3);
+  ec.setMinClusterSize (5);
   ec.setMaxClusterSize (25000);
   ec.setSearchMethod (tree);
   ec.setInputCloud (cloud_diff_euclidean);
@@ -175,9 +175,9 @@ int main(int argc, char **argv)
 {
   ros::init(argc, argv, "downsampling");
   ros::NodeHandle n;
-  pub_backgroundsub = n.advertise<sensor_msgs::PointCloud2>("/filterd_points", 10);
-  pub_cluster = n.advertise<sensor_msgs::PointCloud2>("/clustered_points", 10);
-  pub_centroid = n.advertise<sensor_msgs::PointCloud2>("/centroid_points", 10);
+  pub_backgroundsub = n.advertise<sensor_msgs::PointCloud2>("/filterd_points", 1);
+  pub_cluster = n.advertise<sensor_msgs::PointCloud2>("/clustered_points", 1);
+  pub_centroid = n.advertise<sensor_msgs::PointCloud2>("/centroid_points", 1);
   sub = n.subscribe("/velodyne_points", 1, cloud_callback);
   if (pcl::io::loadPCDFile<pcl::PointXYZ> ("background.pcd", *cloudA) == -1) //* load the file
   {
