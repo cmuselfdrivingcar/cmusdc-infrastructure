@@ -1,0 +1,126 @@
+[  0%] Built target std_msgs_generate_messages_cpp
+[  0%] Built target std_msgs_generate_messages_py
+[  0%] Built target std_msgs_generate_messages_nodejs
+[  0%] Built target std_msgs_generate_messages_eus
+[  0%] Built target std_msgs_generate_messages_lisp
+[  0%] Built target tf2_msgs_generate_messages_lisp
+[  1%] Built target velodyne_driver_gencfg
+[  1%] Built target diagnostic_msgs_generate_messages_nodejs
+[  1%] Built target _velodyne_msgs_generate_messages_check_deps_VelodyneScan
+[  1%] Built target _velodyne_msgs_generate_messages_check_deps_VelodynePacket
+[  3%] Linking CXX executable /home/teame16/CMUSelfDrivingCar/devel/lib/background_subtraction/downsampling
+[  3%] Built target actionlib_msgs_generate_messages_py
+[  3%] Built target tf2_msgs_generate_messages_cpp
+[  3%] Built target actionlib_msgs_generate_messages_lisp
+[  5%] Linking CXX executable /home/teame16/CMUSelfDrivingCar/devel/lib/pedestrian_tracking/track_pedestrian
+[  7%] Linking CXX executable /home/teame16/CMUSelfDrivingCar/devel/lib/background_subtraction/generatebackground
+[  7%] Built target actionlib_generate_messages_py
+[  7%] Built target actionlib_msgs_generate_messages_eus
+[  7%] Built target actionlib_generate_messages_lisp
+[  7%] Built target actionlib_generate_messages_eus
+[  7%] Built target tf_generate_messages_py
+[  7%] Built target tf_generate_messages_eus
+[  7%] Built target tf2_msgs_generate_messages_py
+[  7%] Built target sensor_msgs_generate_messages_lisp
+[  7%] Built target actionlib_msgs_generate_messages_nodejs
+[  7%] Built target actionlib_msgs_generate_messages_cpp
+[  7%] Built target sensor_msgs_generate_messages_eus
+[  7%] Built target actionlib_generate_messages_nodejs
+[  7%] Built target sensor_msgs_generate_messages_cpp
+[  7%] Built target actionlib_generate_messages_cpp
+[  7%] Built target sensor_msgs_generate_messages_py
+[  7%] Built target rosgraph_msgs_generate_messages_cpp
+[  7%] Built target bond_generate_messages_lisp
+[  7%] Built target roscpp_generate_messages_lisp
+[  7%] Built target dynamic_reconfigure_generate_messages_lisp
+[  7%] Built target roscpp_generate_messages_nodejs
+[  7%] Built target rosgraph_msgs_generate_messages_lisp
+[  7%] Built target rosgraph_msgs_generate_messages_py
+[  7%] Built target tf_generate_messages_lisp
+[  7%] Built target bond_generate_messages_eus
+[  7%] Built target roscpp_generate_messages_eus
+[  7%] Built target dynamic_reconfigure_generate_messages_cpp
+[  7%] Built target geometry_msgs_generate_messages_cpp
+[  7%] Built target sensor_msgs_generate_messages_nodejs
+[  7%] Built target geometry_msgs_generate_messages_eus
+[  7%] Built target rosgraph_msgs_generate_messages_nodejs
+[  7%] Built target roscpp_generate_messages_cpp
+[  7%] Built target rosgraph_msgs_generate_messages_eus
+[  7%] Built target nodelet_generate_messages_py
+[  7%] Built target roscpp_generate_messages_py
+[  7%] Built target tf_generate_messages_nodejs
+[  7%] Built target dynamic_reconfigure_generate_messages_py
+[  7%] Built target bond_generate_messages_py
+[  7%] Built target geometry_msgs_generate_messages_lisp
+[  7%] Built target nodelet_generate_messages_lisp
+[  7%] Built target geometry_msgs_generate_messages_nodejs
+[  7%] Built target geometry_msgs_generate_messages_py
+[  7%] Built target tf_generate_messages_cpp
+[  7%] Built target dynamic_reconfigure_generate_messages_eus
+[  7%] Built target dynamic_reconfigure_generate_messages_nodejs
+[  7%] Built target dynamic_reconfigure_gencfg
+[  7%] Built target tf2_msgs_generate_messages_eus
+[  7%] Built target nodelet_generate_messages_cpp
+[  7%] Built target nodelet_generate_messages_nodejs
+[  7%] Built target bond_generate_messages_cpp
+[  7%] Built target tf2_msgs_generate_messages_nodejs
+[  7%] Built target nodelet_generate_messages_eus
+[  7%] Built target bond_generate_messages_nodejs
+[  7%] Built target diagnostic_msgs_generate_messages_eus
+[  7%] Built target diagnostic_msgs_generate_messages_py
+[  7%] Built target diagnostic_msgs_generate_messages_cpp
+[  7%] Built target diagnostic_msgs_generate_messages_lisp
+[  8%] Built target velodyne_laserscan_gencfg
+[ 16%] Built target velodyne_msgs_generate_messages_cpp
+[ 16%] Built target velodyne_pointcloud_gencfg
+[ 21%] Built target velodyne_msgs_generate_messages_py
+[ 26%] Built target velodyne_msgs_generate_messages_eus
+[ 30%] Built target velodyne_msgs_generate_messages_lisp
+[ 33%] Built target velodyne_msgs_generate_messages_nodejs
+[ 39%] Built target velodyne_laserscan
+[ 39%] Built target velodyne_msgs_generate_messages
+Scanning dependencies of target velodyne_laserscan_node
+[ 42%] Built target velodyne_input
+[ 44%] Building CXX object velodyne/velodyne_laserscan/CMakeFiles/velodyne_laserscan_node.dir/src/node.cpp.o
+Scanning dependencies of target driver_nodelet
+Scanning dependencies of target velodyne_node
+[ 46%] Building CXX object velodyne/velodyne_driver/src/driver/CMakeFiles/driver_nodelet.dir/nodelet.cc.o
+Scanning dependencies of target velodyne_rawdata
+Scanning dependencies of target ringcolors_nodelet
+[ 48%] Building CXX object velodyne/velodyne_driver/src/driver/CMakeFiles/velodyne_node.dir/velodyne_node.cc.o
+[ 50%] Building CXX object velodyne/velodyne_pointcloud/src/lib/CMakeFiles/velodyne_rawdata.dir/rawdata.cc.o
+[ 51%] Building CXX object velodyne/velodyne_pointcloud/src/conversions/CMakeFiles/ringcolors_nodelet.dir/ringcolors_nodelet.cc.o
+perception/pedestrian_tracking/CMakeFiles/track_pedestrian.dir/build.make:739: recipe for target '/home/teame16/CMUSelfDrivingCar/devel/lib/pedestrian_tracking/track_pedestrian' failed
+CMakeFiles/Makefile2:3497: recipe for target 'perception/pedestrian_tracking/CMakeFiles/track_pedestrian.dir/all' failed
+[ 53%] Building CXX object velodyne/velodyne_pointcloud/src/conversions/CMakeFiles/ringcolors_nodelet.dir/colors.cc.o
+perception/background_subtraction/CMakeFiles/generatebackground.dir/build.make:739: recipe for target '/home/teame16/CMUSelfDrivingCar/devel/lib/background_subtraction/generatebackground' failed
+CMakeFiles/Makefile2:1202: recipe for target 'perception/background_subtraction/CMakeFiles/generatebackground.dir/all' failed
+[ 55%] Building CXX object velodyne/velodyne_driver/src/driver/CMakeFiles/driver_nodelet.dir/driver.cc.o
+[ 57%] Linking CXX executable /home/teame16/CMUSelfDrivingCar/devel/lib/velodyne_laserscan/velodyne_laserscan_node
+velodyne/velodyne_laserscan/CMakeFiles/velodyne_laserscan_node.dir/build.make:157: recipe for target '/home/teame16/CMUSelfDrivingCar/devel/lib/velodyne_laserscan/velodyne_laserscan_node' failed
+CMakeFiles/Makefile2:4870: recipe for target 'velodyne/velodyne_laserscan/CMakeFiles/velodyne_laserscan_node.dir/all' failed
+[ 58%] Building CXX object velodyne/velodyne_pointcloud/src/lib/CMakeFiles/velodyne_rawdata.dir/calibration.cc.o
+[ 60%] Building CXX object velodyne/velodyne_driver/src/driver/CMakeFiles/velodyne_node.dir/driver.cc.o
+[ 62%] Linking CXX shared library /home/teame16/CMUSelfDrivingCar/devel/lib/libvelodyne_rawdata.so
+[ 62%] Built target velodyne_rawdata
+perception/background_subtraction/CMakeFiles/downsampling.dir/build.make:739: recipe for target '/home/teame16/CMUSelfDrivingCar/devel/lib/background_subtraction/downsampling' failed
+CMakeFiles/Makefile2:1101: recipe for target 'perception/background_subtraction/CMakeFiles/downsampling.dir/all' failed
+[ 64%] Linking CXX shared library /home/teame16/CMUSelfDrivingCar/devel/lib/libringcolors_nodelet.so
+[ 64%] Built target ringcolors_nodelet
+[ 66%] Linking CXX shared library /home/teame16/CMUSelfDrivingCar/devel/lib/libdriver_nodelet.so
+[ 66%] Built target driver_nodelet
+[ 67%] Linking CXX executable /home/teame16/CMUSelfDrivingCar/devel/lib/velodyne_driver/velodyne_node
+velodyne/velodyne_driver/src/driver/CMakeFiles/velodyne_node.dir/build.make:157: recipe for target '/home/teame16/CMUSelfDrivingCar/devel/lib/velodyne_driver/velodyne_node' failed
+CMakeFiles/Makefile2:4734: recipe for target 'velodyne/velodyne_driver/src/driver/CMakeFiles/velodyne_node.dir/all' failed
+Makefile:138: recipe for target 'all' failed
+Base path: /home/teame16/CMUSelfDrivingCar
+Source space: /home/teame16/CMUSelfDrivingCar/src
+Build space: /home/teame16/CMUSelfDrivingCar/build
+Devel space: /home/teame16/CMUSelfDrivingCar/devel
+Install space: /home/teame16/CMUSelfDrivingCar/install
+####
+#### Running command: "make cmake_check_build_system" in "/home/teame16/CMUSelfDrivingCar/build"
+####
+####
+#### Running command: "make -j8 -l8" in "/home/teame16/CMUSelfDrivingCar/build"
+####
