@@ -22,7 +22,7 @@ sudo ifconfig eth0 192.168.3.100
 sudo route add 192.168.1.201 eth0
 
 rosrun velodyne_pointcloud gen_calibration.py PUCK_Calibration_File_2deg.xml
-roslaunch velodyne_pointcloud VLP16_points.launch calibration:=/home/teame/catkin_ws/PUCK_Calibration_File_2deg.yaml
+roslaunch velodyne_pointcloud VLP16_points.launch calibration:=/home/teame16/catkin_ws/PUCK_Calibration_File_2deg.yaml
 rosrun rviz rviz -f velodyne
 
 2. PCL Installation:
@@ -46,3 +46,10 @@ rosrun pcl_ros pointcloud_to_pcd input:=/velodyne_points
 
 # visualize background.pcd
 rosrun pcl_ros pcd_to_pointcloud /home/teame16/CMUSelfDrivingCar/background.pcd 0.1 _frame_id:=/velodyne
+
+# Prediction
+roscore
+roslaunch velodyne_pointcloud VLP16_points.launch calibration:=/home/teame16/catkin_ws/PUCK_Calibration_File_2deg.yaml
+rosrun rviz rviz -f velodyne
+rosrun background_subtraction downsampling
+rosrun pedestrian_tracking track_pedestrian 

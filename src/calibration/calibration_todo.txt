@@ -1,0 +1,14 @@
+
+calibration.cpp
+1. subscribe to velodyne 
+2. transform from velodyne tf to zed tf
+3. project 3D to 2D
+(u,v,1) = Intrinsic Mat * Extrinsic Mat * (x,y,z,1)
+
+Intrinsic Mat: ?
+Extrinsic Mat:
+// Average transformation is: 
+//   0.999045  0.0162031 -0.0405696 -0.0268615
+// -0.0196781   0.996033 -0.0867763  -0.138241
+//  0.0390026  0.0874918   0.995401 -0.0228031
+//          0          0          0          1
