@@ -123,7 +123,7 @@ def callback(data):
 
         path_pub.publish(my_path_true)
         predicted_path_pub.publish(my_path_pred)
-
+        break
         # print y_pred
 
     # print xs

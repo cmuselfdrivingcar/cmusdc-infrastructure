@@ -142,6 +142,7 @@ include_directories(
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(downsampling src/downsampling.cpp)
 add_executable(generatebackground src/generatebackground.cpp)
+add_executable(registerbackground src/registerbackground.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -164,6 +165,10 @@ target_link_libraries(generatebackground
   ${PCL_LIBRARIES}
 )
 
+target_link_libraries(registerbackground
+  ${catkin_LIBRARIES}
+  ${PCL_LIBRARIES}
+)
 #############
 ## Install ##
 #############

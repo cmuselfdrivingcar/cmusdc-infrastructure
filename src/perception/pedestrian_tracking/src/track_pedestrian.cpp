@@ -44,13 +44,14 @@ void centroid_callback (const sensor_msgs::PointCloud2ConstPtr& cloud_msg){
   if (index >= 0) {
   	pcl::PointCloud<pcl::PointXYZ>::Ptr centroid_cluster (new pcl::PointCloud<pcl::PointXYZ>);
   	centroid_cluster->points.push_back(centroids->points[index]);
-  	if (isFirstTime) {
-      previous_centroid = centroids->points[index];
-      isFirstTime = false;
-    }
-    else if (minDistance < 0.5) {
-      previous_centroid = centroids->points[index];
-    }
+  	// if (isFirstTime) {
+   //    previous_centroid = centroids->points[index];
+   //    isFirstTime = false;
+   //  }
+    previous_centroid = centroids->points[index];
+    // else if (minDistance < 0.5) {
+    //   previous_centroid = centroids->points[index];
+    // }
 
   	sensor_msgs::PointCloud2 track_output;
 	  pcl::toROSMsg (*centroid_cluster, track_output);
