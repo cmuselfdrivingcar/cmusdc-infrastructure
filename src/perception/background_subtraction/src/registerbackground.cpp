@@ -26,9 +26,14 @@ float resolution = 0.5f;
 
 ros::Subscriber sub;
 
+ros::Publisher pub_old_background;
+ros::Publisher pub_new_background;
+
 // pcl::octree::OctreePointCloudChangeDetector<pcl::PointXYZ> octree (resolution);
 pcl::PointCloud<pcl::PointXYZ>::Ptr old_background (new pcl::PointCloud<pcl::PointXYZ>);
 pcl::PointCloud<pcl::PointXYZ>::Ptr new_scene (new pcl::PointCloud<pcl::PointXYZ>);
+pcl::PointCloud<pcl::PointXYZ>::Ptr new_background (new pcl::PointCloud<pcl::PointXYZ>);
+
 
 int receivedTimes = 0;
 
@@ -176,6 +181,8 @@ void pairAlign (const PointCloud::Ptr cloud_src, const PointCloud::Ptr cloud_tgt
   // Get the transformation from target to source
   targetToSource = Ti.inverse();
 
+  std::cout << targetToSource << std::endl;
+
   //
   // Transform target back in source frame
   pcl::transformPointCloud (*cloud_tgt, *output, targetToSource);
@@ -224,22 +231,35 @@ void start_reg() {
   std::stringstream ss;
   ss << "registered" << ".pcd";
   pcl::io::savePCDFile (ss.str (), *result, true);
+
+  *new_background = *result;
 }
 
 void cloud_callback (const sensor_msgs::PointCloud2ConstPtr& cloud_msg){
-  pcl::PointCloud<pcl::PointXYZ>::Ptr current_cloud (new pcl::PointCloud<pcl::PointXYZ>);
-  pcl::fromROSMsg (*cloud_msg, *current_cloud);
-
-  *new_scene += *current_cloud;
-
-  receivedTimes ++;
-
-  if (receivedTimes >= 10)
+  if (receivedTimes < 10)
   {
+    pcl::PointCloud<pcl::PointXYZ>::Ptr current_cloud (new pcl::PointCloud<pcl::PointXYZ>);
+    pcl::fromROSMsg (*cloud_msg, *current_cloud);
+
+    *new_scene += *current_cloud;
+  } else if (receivedTimes == 10)
+  {
+
     start_reg();
-    sub.shutdown();
   }
 
+  sensor_msgs::PointCloud2 output;
+  pcl::toROSMsg (*old_background, output);
+  output.header.frame_id = "velodyne";
+  pub_old_background.publish(output);
+  
+
+  sensor_msgs::PointCloud2 output2;
+  pcl::toROSMsg (*new_background, output2);
+  output2.header.frame_id = "velodyne";
+  pub_new_background.publish(output2);
+
+  receivedTimes ++;
 }
 
 int main(int argc, char **argv)
@@ -247,6 +267,8 @@ int main(int argc, char **argv)
   ros::init(argc, argv, "downsampling");
   ros::NodeHandle n;
   sub = n.subscribe("/velodyne_points", 1, cloud_callback);
+  pub_old_background = n.advertise<sensor_msgs::PointCloud2>("/old_background", 1);
+  pub_new_background = n.advertise<sensor_msgs::PointCloud2>("/new_background", 1);
   if (pcl::io::loadPCDFile<pcl::PointXYZ> ("background.pcd", *old_background) == -1) //* load the file
   {
     PCL_ERROR ("Couldn't read file background.pcd \n");
