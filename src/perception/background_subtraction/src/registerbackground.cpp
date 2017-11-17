@@ -36,30 +36,13 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr new_background (new pcl::PointCloud<pcl::Poi
 
 
 int receivedTimes = 0;
+int MAXRECEIVETIMES = 30;
 
 //convenient typedefs
 typedef pcl::PointXYZ PointT;
 typedef pcl::PointCloud<PointT> PointCloud;
 typedef pcl::PointNormal PointNormalT;
 typedef pcl::PointCloud<PointNormalT> PointCloudWithNormals;
-
-//convenient structure to handle our pointclouds
-struct PCD
-{
-  PointCloud::Ptr cloud;
-  std::string f_name;
-
-  PCD() : cloud (new PointCloud) {};
-};
-
-struct PCDComparator
-{
-  bool operator () (const PCD& p1, const PCD& p2)
-  {
-    return (p1.f_name < p2.f_name);
-  }
-};
-
 
 // Define a new point representation for < x, y, z, curvature >
 class MyPointRepresentation : public pcl::PointRepresentation <PointNormalT>
@@ -144,13 +127,11 @@ void pairAlign (const PointCloud::Ptr cloud_src, const PointCloud::Ptr cloud_tgt
   reg.setInputSource (points_with_normals_src);
   reg.setInputTarget (points_with_normals_tgt);
 
-
-
   //
   // Run the same optimization in a loop and visualize the results
   Eigen::Matrix4f Ti = Eigen::Matrix4f::Identity (), prev, targetToSource;
   PointCloudWithNormals::Ptr reg_result = points_with_normals_src;
-  reg.setMaximumIterations (2);
+  reg.setMaximumIterations (50);
   for (int i = 0; i < 30; ++i)
   {
     PCL_INFO ("Iteration Nr. %d.\n", i);
@@ -208,21 +189,21 @@ void pairAlign (const PointCloud::Ptr cloud_src, const PointCloud::Ptr cloud_tgt
 }
 
 void start_reg() {
-  
 
   PointCloud::Ptr result (new PointCloud), source, target;
   Eigen::Matrix4f GlobalTransform = Eigen::Matrix4f::Identity(), pairTransform;
+  // source = new_scene;
   source = new_scene;
   target = old_background;
 
   // Add visualization data
   // showCloudsLeft(source, target);
 
-  PointCloud::Ptr temp (new PointCloud);
-  pairAlign (source, target, temp, pairTransform, true);
+  // PointCloud::Ptr temp (new PointCloud);
+  pairAlign (source, target, result, pairTransform, false);
 
   //transform current pair into the global transform
-  pcl::transformPointCloud (*temp, *result, GlobalTransform);
+  // pcl::transformPointCloud (*temp, *result, GlobalTransform);
 
   //update the global transform
   // GlobalTransform = GlobalTransform * pairTransform;
@@ -236,15 +217,14 @@ void start_reg() {
 }
 
 void cloud_callback (const sensor_msgs::PointCloud2ConstPtr& cloud_msg){
-  if (receivedTimes < 10)
+  if (receivedTimes < MAXRECEIVETIMES)
   {
     pcl::PointCloud<pcl::PointXYZ>::Ptr current_cloud (new pcl::PointCloud<pcl::PointXYZ>);
     pcl::fromROSMsg (*cloud_msg, *current_cloud);
 
     *new_scene += *current_cloud;
-  } else if (receivedTimes == 10)
+  } else if (receivedTimes == MAXRECEIVETIMES)
   {
-
     start_reg();
   }
 
