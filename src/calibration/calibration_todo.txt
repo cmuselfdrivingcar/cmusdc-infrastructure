@@ -1,8 +1,9 @@
 
 calibration.cpp
-1. subscribe to velodyne 
-2. transform from velodyne tf to zed tf
-3. project 3D to 2D
+1. subscribe to velodyne
+2. subscribe to zed image 
+3. transform from velodyne tf to zed tf
+4. project 3D to 2D
 (u,v,1) = Intrinsic Mat * Extrinsic Mat * (x,y,z,1)
 
 Intrinsic Mat: ?

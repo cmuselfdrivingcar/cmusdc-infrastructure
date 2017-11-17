@@ -179,7 +179,7 @@ int main(int argc, char **argv)
   pub_cluster = n.advertise<sensor_msgs::PointCloud2>("/clustered_points", 1);
   pub_centroid = n.advertise<sensor_msgs::PointCloud2>("/centroid_points", 1);
   sub = n.subscribe("/velodyne_points", 1, cloud_callback);
-  if (pcl::io::loadPCDFile<pcl::PointXYZ> ("background.pcd", *cloudA) == -1) //* load the file
+  if (pcl::io::loadPCDFile<pcl::PointXYZ> ("registered.pcd", *cloudA) == -1) //* load the file
   {
     PCL_ERROR ("Couldn't read file background.pcd \n");
     return (-1);

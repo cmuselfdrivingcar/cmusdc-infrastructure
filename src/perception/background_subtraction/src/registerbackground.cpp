@@ -14,6 +14,7 @@
 #include <pcl/registration/icp.h>
 #include <pcl/registration/icp_nl.h>
 #include <pcl/registration/transforms.h>
+#include <pcl/registration/ndt.h>
 
 #include <pcl/visualization/pcl_visualizer.h>
 
@@ -28,15 +29,17 @@ ros::Subscriber sub;
 
 ros::Publisher pub_old_background;
 ros::Publisher pub_new_background;
+ros::Publisher pub_reference_frame;
 
 // pcl::octree::OctreePointCloudChangeDetector<pcl::PointXYZ> octree (resolution);
 pcl::PointCloud<pcl::PointXYZ>::Ptr old_background (new pcl::PointCloud<pcl::PointXYZ>);
 pcl::PointCloud<pcl::PointXYZ>::Ptr new_scene (new pcl::PointCloud<pcl::PointXYZ>);
 pcl::PointCloud<pcl::PointXYZ>::Ptr new_background (new pcl::PointCloud<pcl::PointXYZ>);
+pcl::PointCloud<pcl::PointXYZ>::Ptr filtered_cloud (new pcl::PointCloud<pcl::PointXYZ>);
 
 
 int receivedTimes = 0;
-int MAXRECEIVETIMES = 30;
+int MAXRECEIVETIMES = 1;
 
 //convenient typedefs
 typedef pcl::PointXYZ PointT;
@@ -131,7 +134,7 @@ void pairAlign (const PointCloud::Ptr cloud_src, const PointCloud::Ptr cloud_tgt
   // Run the same optimization in a loop and visualize the results
   Eigen::Matrix4f Ti = Eigen::Matrix4f::Identity (), prev, targetToSource;
   PointCloudWithNormals::Ptr reg_result = points_with_normals_src;
-  reg.setMaximumIterations (50);
+  reg.setMaximumIterations (5);
   for (int i = 0; i < 30; ++i)
   {
     PCL_INFO ("Iteration Nr. %d.\n", i);
@@ -216,6 +219,65 @@ void start_reg() {
   *new_background = *result;
 }
 
+void start_reg2() {
+  pcl::IterativeClosestPoint<pcl::PointXYZ, pcl::PointXYZ> icp;
+  icp.setInputSource(new_scene);
+  icp.setInputTarget(old_background);
+  pcl::PointCloud<pcl::PointXYZ> Final;
+  icp.align(Final);
+  std::cout << "has converged:" << icp.hasConverged() << " score: " <<
+  icp.getFitnessScore() << std::endl;
+  std::cout << icp.getFinalTransformation() << std::endl;
+  pcl::transformPointCloud (*old_background, *new_background, icp.getFinalTransformation());
+}
+
+void start_reg3() {
+  // Filtering input scan to roughly 10% of original size to increase speed of registration.
+  pcl::VoxelGrid<pcl::PointXYZ> approximate_voxel_filter;
+  approximate_voxel_filter.setLeafSize (0.2, 0.2, 0.2);
+  approximate_voxel_filter.setInputCloud (old_background);
+  approximate_voxel_filter.filter (*filtered_cloud);
+  std::cout << "Filtered cloud contains " << filtered_cloud->size ()
+            << " data points from room_scan2.pcd" << std::endl;
+
+  // Initializing Normal Distributions Transform (NDT).
+  pcl::NormalDistributionsTransform<pcl::PointXYZ, pcl::PointXYZ> ndt;
+
+  // Setting scale dependent NDT parameters
+  // Setting minimum transformation difference for termination condition.
+  ndt.setTransformationEpsilon (0.01);
+  // Setting maximum step size for More-Thuente line search.
+  ndt.setStepSize (0.1);
+  //Setting Resolution of NDT grid structure (VoxelGridCovariance).
+  ndt.setResolution (1.0);
+
+  // Setting max number of registration iterations.
+  ndt.setMaximumIterations (35);
+
+  // Setting point cloud to be aligned.
+  ndt.setInputSource (filtered_cloud);
+  // Setting point cloud to be aligned to.
+  ndt.setInputTarget (new_scene);
+
+  // Set initial alignment estimate found using robot odometry.
+  Eigen::AngleAxisf init_rotation (0, Eigen::Vector3f::UnitZ ());
+  Eigen::Translation3f init_translation (0, 0, 0);
+  Eigen::Matrix4f init_guess = (init_translation * init_rotation).matrix ();
+
+  // Calculating required rigid transform to align the input cloud to the target cloud.
+  ndt.align (*new_background, init_guess);
+
+  std::cout << "Normal Distributions Transform has converged:" << ndt.hasConverged ()
+            << " score: " << ndt.getFitnessScore () << std::endl;
+
+  // Transforming unfiltered, input cloud using found transform.
+  pcl::transformPointCloud (*old_background, *new_background, ndt.getFinalTransformation ());
+
+  // Saving transformed input cloud.
+  pcl::io::savePCDFileASCII ("registered.pcd", *new_background);
+
+}
+
 void cloud_callback (const sensor_msgs::PointCloud2ConstPtr& cloud_msg){
   if (receivedTimes < MAXRECEIVETIMES)
   {
@@ -225,7 +287,7 @@ void cloud_callback (const sensor_msgs::PointCloud2ConstPtr& cloud_msg){
     *new_scene += *current_cloud;
   } else if (receivedTimes == MAXRECEIVETIMES)
   {
-    start_reg();
+    start_reg3();
   }
 
   sensor_msgs::PointCloud2 output;
@@ -239,6 +301,11 @@ void cloud_callback (const sensor_msgs::PointCloud2ConstPtr& cloud_msg){
   output2.header.frame_id = "velodyne";
   pub_new_background.publish(output2);
 
+  sensor_msgs::PointCloud2 output3;
+  pcl::toROSMsg (*filtered_cloud, output3);
+  output3.header.frame_id = "velodyne";
+  pub_reference_frame.publish(output3);
+
   receivedTimes ++;
 }
 
@@ -249,6 +316,8 @@ int main(int argc, char **argv)
   sub = n.subscribe("/velodyne_points", 1, cloud_callback);
   pub_old_background = n.advertise<sensor_msgs::PointCloud2>("/old_background", 1);
   pub_new_background = n.advertise<sensor_msgs::PointCloud2>("/new_background", 1);
+  pub_reference_frame = n.advertise<sensor_msgs::PointCloud2>("/reference_frame", 1);
+
   if (pcl::io::loadPCDFile<pcl::PointXYZ> ("background.pcd", *old_background) == -1) //* load the file
   {
     PCL_ERROR ("Couldn't read file background.pcd \n");
