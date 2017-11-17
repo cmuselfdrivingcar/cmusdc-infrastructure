@@ -6,6 +6,7 @@ from pedestrian_tracking.msg import PedestrianPoseList
 from Queue import Queue, heapq, deque
 from nav_msgs.msg import Path
 from geometry_msgs.msg import Pose, PoseWithCovarianceStamped, Point, Quaternion, Twist, PoseStamped
+from infrastructure_to_vehicle.msg import PointArray
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -82,7 +83,11 @@ def callback(data):
             # error[i][0] = x_pred[i] - xs[i + observation_length]
             # error[i][1] = y_pred[i] - ys[i + observation_length]
 
-        points_pred = list()
+        # points_pred = list()
+
+        pointArray = PointArray()
+        pointArray.header.stamp = rospy.Time.now()
+        pointArray.header.frame_id = "velodyne";
 
         pose_list_pred = list()
         my_path_pred = Path()
@@ -108,7 +113,7 @@ def callback(data):
             # pose.header.stamp = rospy.Time.now()
             pose_list_pred.append(pose)
             my_path_pred.poses.append(pose)
-            points_pred.append(point)
+            pointArray.points.append(point)
 
         for i in range(len(xs)):
             pose = PoseStamped()
@@ -129,7 +134,7 @@ def callback(data):
 
         path_pub.publish(my_path_true)
         predicted_path_pub.publish(my_path_pred)
-        # predicted_point_pub.publish(points_pred)
+        predicted_point_pub.publish(pointArray)
         break
         # print y_pred
 
@@ -154,7 +159,7 @@ def listener():
 
     path_pub = rospy.Publisher("/path",Path,queue_size=100)
     predicted_path_pub = rospy.Publisher("/predicted_path",Path,queue_size=100)
-    predicted_point_pub = rospy.Publisher("/predicted_points",Point,queue_size=100)
+    predicted_point_pub = rospy.Publisher("/predicted_points",PointArray,queue_size=100)
     
     # spin() simply keeps python from exiting until this node is stopped
     rospy.spin()
