@@ -39,7 +39,7 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr filtered_cloud (new pcl::PointCloud<pcl::Poi
 
 
 int receivedTimes = 0;
-int MAXRECEIVETIMES = 1;
+int MAXRECEIVETIMES = 10;
 
 //convenient typedefs
 typedef pcl::PointXYZ PointT;
@@ -273,13 +273,15 @@ void start_reg3() {
   // Transforming unfiltered, input cloud using found transform.
   pcl::transformPointCloud (*old_background, *new_background, ndt.getFinalTransformation ());
 
+  *new_background += *new_scene;
+
   // Saving transformed input cloud.
   pcl::io::savePCDFileASCII ("registered.pcd", *new_background);
 
 }
 
 void cloud_callback (const sensor_msgs::PointCloud2ConstPtr& cloud_msg){
-  if (receivedTimes < MAXRECEIVETIMES)
+  if (receivedTimes < MAXRECEIVETIMES && receivedTimes % 2 == 0)
   {
     pcl::PointCloud<pcl::PointXYZ>::Ptr current_cloud (new pcl::PointCloud<pcl::PointXYZ>);
     pcl::fromROSMsg (*cloud_msg, *current_cloud);

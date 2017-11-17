@@ -129,7 +129,7 @@ def callback(data):
 
         path_pub.publish(my_path_true)
         predicted_path_pub.publish(my_path_pred)
-	predicted_point_pub(points_pred)
+        # predicted_point_pub.publish(points_pred)
         break
         # print y_pred
 
