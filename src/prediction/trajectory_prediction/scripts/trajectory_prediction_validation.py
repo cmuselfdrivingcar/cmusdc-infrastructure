@@ -10,8 +10,8 @@ from geometry_msgs.msg import Pose, PoseWithCovarianceStamped, Point, Quaternion
 import numpy as np
 import matplotlib.pyplot as plt
 
-QUEUE_SIZE = 12
-prediction_length = 12
+QUEUE_SIZE = 20
+prediction_length = 8
 polyfit_degree = 2
 
 def callback(data):
@@ -56,10 +56,10 @@ def callback(data):
 
 
         # validate model
-        # total_length = len(queue)
-        # if total_length < 12:
-        #     continue
-        # observation_length = total_length-prediction_length
+        total_length = len(queue)
+        if total_length < 12:
+            continue
+        observation_length = total_length-prediction_length
 
         frames = [frame for frame in range(observation_length)]
         xs = [data[1] for data in queue]
@@ -74,15 +74,13 @@ def callback(data):
         p_x = np.poly1d(p_x)
         p_y = np.poly1d(p_y)
 
-        # shape_error = (prediction_length, 2)
-        # error = np.zeros(shape_error)
+        shape_error = (prediction_length, 2)
+        error = np.zeros(shape_error)
         for i in range(prediction_length):
             x_pred[i] = p_x(observation_length+i)
             y_pred[i] = p_y(observation_length+i)
-            # error[i][0] = x_pred[i] - xs[i + observation_length]
-            # error[i][1] = y_pred[i] - ys[i + observation_length]
-
-        points_pred = list()
+            error[i][0] = x_pred[i] - xs[i + observation_length]
+            error[i][1] = y_pred[i] - ys[i + observation_length]
 
         pose_list_pred = list()
         my_path_pred = Path()
@@ -99,16 +97,10 @@ def callback(data):
             loc.position.y = y_pred[i]
             pose.pose = loc
 
-            point = Point()
-            point.x = x_pred[i]
-            point.y = y_pred[i]
-            point.y = 1
-
             # pose.header.frame_id = '/odom'
             # pose.header.stamp = rospy.Time.now()
             pose_list_pred.append(pose)
             my_path_pred.poses.append(pose)
-            points_pred.append(point)
 
         for i in range(len(xs)):
             pose = PoseStamped()
@@ -125,10 +117,10 @@ def callback(data):
         print '-----------------------------------'
         print y_pred
         print ys[observation_length:]
-        # print error
+        print error
 
         path_pub.publish(my_path_true)
-        predicted_path_pub.publish(my_path_pred)
+        predicted_path_validation_pub.publish(my_path_pred)
         break
         # print y_pred
 
@@ -149,11 +141,11 @@ def listener():
     rospy.init_node('listener', anonymous=True)
 
     rospy.Subscriber("/track_points_msg", PedestrianPoseList, callback)
-    global path_pub, predicted_path_pub, predicted_point_pub
+    global path_pub, predicted_path_validation_pub, predicted_path_pub
 
     path_pub = rospy.Publisher("/path",Path,queue_size=100)
+    predicted_path_validation_pub = rospy.Publisher("/predicted_path_validation",Path,queue_size=100)
     predicted_path_pub = rospy.Publisher("/predicted_path",Path,queue_size=100)
-    predicted_point_pub = rospy.Publisher("/predicted_points",Point,queue_size=100)
     
     # spin() simply keeps python from exiting until this node is stopped
     rospy.spin()
