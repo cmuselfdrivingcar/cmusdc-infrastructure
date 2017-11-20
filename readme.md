@@ -37,7 +37,7 @@ uncomment #include "octree2buf_base.h" in /usr/include/pcl-1.7/pcl/octree/octree
 1. rosrun rviz rviz -f velodyne
 2.1 roslaunch velodyne_pointcloud VLP16_points.launch calibration:=/home/teame16/catkin_ws/PUCK_Calibration_File_2deg.yaml
 2.2 rosbag play -l *.bag 
-3. rosrun background_subtraction downsampling 
+3. rosrun background_subtraction background_subtraction 
 
 3. roslaunch octomap_server octomap_mapping.launch
 
@@ -54,6 +54,6 @@ rosrun pcl_ros pcd_to_pointcloud /home/teame16/CMUSelfDrivingCar/background.pcd 
 roscore
 roslaunch velodyne_pointcloud VLP16_points.launch calibration:=/home/teame16/catkin_ws/PUCK_Calibration_File_2deg.yaml
 rosrun rviz rviz -f velodyne
-rosrun background_subtraction downsampling
+rosrun background_subtraction background_subtraction
 rosrun pedestrian_tracking track_pedestrian
 rosrun trajectory_prediction trajectory_prediction.py
