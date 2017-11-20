@@ -12,7 +12,7 @@ int main (int argc, char** argv)
   DIR *dir;
   struct dirent *ent;
   int i = 0;
-  if ((dir = opendir ("/home/teame16/Desktop/background_raw/Version6/")) != NULL) {
+  if ((dir = opendir ("/home/teame16/Desktop/background_raw/Version7/")) != NULL) {
     /* print all the files and directories within directory */
     while ((ent = readdir (dir)) != NULL) {
       if (strcmp(ent->d_name,".") == 0 || strcmp(ent->d_name,"..") == 0 )
@@ -25,7 +25,7 @@ int main (int argc, char** argv)
         char fullName[1000];
         // std::string name = ent->d_name;
         // std::string fullName = "/home/teame16/Desktop/background_raw/Version3/"+ent->d_name;
-        strcpy (fullName,"/home/teame16/Desktop/background_raw/Version6/");
+        strcpy (fullName,"/home/teame16/Desktop/background_raw/Version7/");
         strcat (fullName,ent->d_name);
         printf ("%s\n", fullName);
         if (pcl::io::loadPCDFile<pcl::PointXYZ> (fullName, *cloud) == -1) //* load the file

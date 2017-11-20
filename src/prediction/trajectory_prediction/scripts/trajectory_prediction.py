@@ -7,6 +7,7 @@ from Queue import Queue, heapq, deque
 from nav_msgs.msg import Path
 from geometry_msgs.msg import Pose, PoseWithCovarianceStamped, Point, Quaternion, Twist, PoseStamped
 from infrastructure_to_vehicle.msg import PointArray
+import tf
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -96,6 +97,18 @@ def callback(data):
         pose_list_true = list()
         my_path_true = Path()
         my_path_true.header.frame_id = 'velodyne'
+	
+	# Hi PS, or Rohit, whoever you are. It's me, Oliver, I've added the
+	# code below.  
+	infrastructureToMapBroadcaster = tf.TransformBroadcaster()
+        TRANS_X = 12
+	TRANS_Y = -2.5
+	YAW = 3.14 #5PI/4
+	infrastructureToMapBroadcaster.sendTransform((TRANS_X, TRANS_Y, 0),
+		tf.transformations.quaternion_from_euler(0,0,YAW),
+		rospy.Time.now(),
+		"velodyne",
+		"map")
 
         for i in range(len(x_pred)):
             pose = PoseStamped()
@@ -127,9 +140,12 @@ def callback(data):
             pose_list_true.append(pose)
             my_path_true.poses.append(pose)
 
-        print '-----------------------------------'
-        print y_pred
-        print ys[observation_length:]
+        # print '-----------------------------------'
+        # print x_pred
+        # print xs[observation_length:]
+
+        # print y_pred
+        # print ys[observation_length:]
         # print error
 
         path_pub.publish(my_path_true)

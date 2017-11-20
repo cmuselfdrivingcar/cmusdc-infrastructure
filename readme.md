@@ -39,10 +39,13 @@ uncomment #include "octree2buf_base.h" in /usr/include/pcl-1.7/pcl/octree/octree
 2.2 rosbag play -l *.bag 
 3. rosrun background_subtraction downsampling 
 
-3. roslaunch octomap_server octomap_mapping.launch 
+3. roslaunch octomap_server octomap_mapping.launch
 
-# save background pcd
+# save background pcd in ~/Desktop/background_raw/VersionX (X is a number) directory
 rosrun pcl_ros pointcloud_to_pcd input:=/velodyne_points
+
+# go to perception/src/generagebackground.cpp, change the pcd directory to ~/Desktop/background_raw/VersionX
+rosrun background_subtraction generatebackground
 
 # visualize background.pcd
 rosrun pcl_ros pcd_to_pointcloud /home/teame16/CMUSelfDrivingCar/background.pcd 0.1 _frame_id:=/velodyne
@@ -52,4 +55,5 @@ roscore
 roslaunch velodyne_pointcloud VLP16_points.launch calibration:=/home/teame16/catkin_ws/PUCK_Calibration_File_2deg.yaml
 rosrun rviz rviz -f velodyne
 rosrun background_subtraction downsampling
-rosrun pedestrian_tracking track_pedestrian 
+rosrun pedestrian_tracking track_pedestrian
+rosrun trajectory_prediction trajectory_prediction.py
