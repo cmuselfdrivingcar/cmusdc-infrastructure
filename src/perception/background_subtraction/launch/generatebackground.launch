@@ -1,0 +1,3 @@
+<launch>
+  <node name="generatebackground" pkg="background_subtraction" type="generatebackground" output="screen"/>
+</launch>
