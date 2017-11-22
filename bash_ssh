@@ -1,0 +1,10 @@
+#!/bin/bash
+
+#This bash file is essentially a function which will ssh into the RC car, run some export statements and then launch vehicle_demo.launch
+#DISCLAIMER: Please do not share this code since it contains the password for the ssh in an unencrypted form
+
+sshpass -p "ubuntu" ssh -t -t -o StrictHostKeyChecking=no ubuntu@tx1 << EOF
+export ROS_MASTER_URI=http://10.10.10.118:11311
+export ROS_IP=10.10.10.118
+roslaunch demo vehicle_demo.launch
+EOF
