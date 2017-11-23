@@ -1,0 +1,15 @@
+<launch>
+  <include file="$(find velodyne_pointcloud)/launch/VLP16_points.launch">
+    <rosparam name="calibration" type="yaml" command="load" file="/home/teame16/catkin_ws/PUCK_Calibration_File_2deg.yaml" />
+  </include>
+
+  <node name="pointcloud_to_pcd" pkg="pcl_ros" type="pointcloud_to_pcd" output="screen">
+  	<param name="input" type="str" value="/velodyne_points"/>
+  </node>
+
+  <node pkg="demo" type="generateBackground.sh" 
+    args="30 background_subtraction generatebackground.launch" 
+    name="generateBackground" output="screen">
+  </node>
+  <!-- <node name="rviz" pkg="rviz" type="rviz" args="-f velodyne"/> -->
+</launch>

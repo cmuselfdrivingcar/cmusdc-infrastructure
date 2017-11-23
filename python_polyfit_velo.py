@@ -29,8 +29,11 @@ error = np.zeros(shape_error)
 polyfit_degree_1 = 4
 polyfit_degree_2 = 2
 
-x_true = np.cos(frame * np.pi / (observation_length_high + prediction_length))
-y_true = np.sin(frame * np.pi / (observation_length_high + prediction_length))
+x_true[0:7] = 1
+y_true[0:7] = 1
+
+x_true[8:observation_length_high + prediction_length] = np.cos(frame[8:observation_length_high + prediction_length] * np.pi / (observation_length_high + prediction_length))
+y_true[8:observation_length_high + prediction_length] = np.sin(frame[8:observation_length_high + prediction_length] * np.pi / (observation_length_high + prediction_length))
 
 ###############################
 

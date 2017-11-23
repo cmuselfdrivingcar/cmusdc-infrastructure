@@ -1,0 +1,6 @@
+#!/bin/bash
+
+#This file is used to call bash_ssh which will ssh into the tx1 and then run some commands
+#NOTE: You obviously need to be on the same network(Team Loco 2.4G) as the RC car
+
+xterm -title "App1" -hold -e "source ~/bash_ssh"
