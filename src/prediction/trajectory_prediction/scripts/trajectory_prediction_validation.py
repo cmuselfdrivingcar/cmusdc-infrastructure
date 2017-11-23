@@ -10,11 +10,25 @@ from geometry_msgs.msg import Pose, PoseWithCovarianceStamped, Point, Quaternion
 import numpy as np
 import matplotlib.pyplot as plt
 
-QUEUE_SIZE = 20
-prediction_length = 8
+import math
+
+QUEUE_SIZE = 24
+prediction_length = 12
 polyfit_degree = 2
 
+MAX_TIMES = 600
+
+totalError = list()
+
 def callback(data):
+    global triggered_time
+    if triggered_time >= MAX_TIMES + QUEUE_SIZE:
+        average_error = sum(totalError) / MAX_TIMES
+        print "Average ERROR: " + str(average_error)
+        return
+    else:
+        triggered_time += 1
+    
     currentFrame = data.frameID
     for pose in data.poses:
         pedID = pose.pedID
@@ -30,11 +44,8 @@ def callback(data):
 
     for pedID in pedsQueue:
         queue = pedsQueue[pedID]
-        observation_length = len(queue)
         if currentFrame - queue[-1][0] >= 30:
             del pedsQueue[pedID]
-            continue
-        if observation_length < 3:
             continue
         # frames = [data for data in range(observation_length+prediction_length,0,-1)]
         # xs = [data[1] for data in queue]
@@ -57,7 +68,7 @@ def callback(data):
 
         # validate model
         total_length = len(queue)
-        if total_length < 12:
+        if total_length < QUEUE_SIZE:
             continue
         observation_length = total_length-prediction_length
 
@@ -81,6 +92,9 @@ def callback(data):
             y_pred[i] = p_y(observation_length+i)
             error[i][0] = x_pred[i] - xs[i + observation_length]
             error[i][1] = y_pred[i] - ys[i + observation_length]
+
+        totalError.append(math.sqrt(error[prediction_length-1][0]**2 + error[prediction_length-1][1]**2))
+        print totalError[-1]
 
         pose_list_pred = list()
         my_path_pred = Path()
@@ -115,9 +129,9 @@ def callback(data):
             my_path_true.poses.append(pose)
 
         print '-----------------------------------'
-        print y_pred
-        print ys[observation_length:]
-        print error
+        # print y_pred
+        # print ys[observation_length:]
+        # print error
 
         path_pub.publish(my_path_true)
         predicted_path_validation_pub.publish(my_path_pred)
@@ -151,6 +165,7 @@ def listener():
     rospy.spin()
 
 if __name__ == '__main__':
-    global pedsQueue
+    global pedsQueue, triggered_time
+    triggered_time = 0
     pedsQueue = {}
     listener()

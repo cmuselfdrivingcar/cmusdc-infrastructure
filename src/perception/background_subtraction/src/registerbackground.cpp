@@ -39,7 +39,7 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr filtered_cloud (new pcl::PointCloud<pcl::Poi
 
 
 int receivedTimes = 0;
-int MAXRECEIVETIMES = 10;
+int MAXRECEIVETIMES = 200;
 
 //convenient typedefs
 typedef pcl::PointXYZ PointT;
@@ -238,7 +238,7 @@ void start_reg3() {
   approximate_voxel_filter.setInputCloud (old_background);
   approximate_voxel_filter.filter (*filtered_cloud);
   std::cout << "Filtered cloud contains " << filtered_cloud->size ()
-            << " data points from room_scan2.pcd" << std::endl;
+            << " data points from current scenes" << std::endl;
 
   // Initializing Normal Distributions Transform (NDT).
   pcl::NormalDistributionsTransform<pcl::PointXYZ, pcl::PointXYZ> ndt;
@@ -281,7 +281,7 @@ void start_reg3() {
 }
 
 void cloud_callback (const sensor_msgs::PointCloud2ConstPtr& cloud_msg){
-  if (receivedTimes < MAXRECEIVETIMES && receivedTimes % 2 == 0)
+  if (receivedTimes < MAXRECEIVETIMES && receivedTimes % 10 == 0)
   {
     pcl::PointCloud<pcl::PointXYZ>::Ptr current_cloud (new pcl::PointCloud<pcl::PointXYZ>);
     pcl::fromROSMsg (*cloud_msg, *current_cloud);
@@ -304,7 +304,7 @@ void cloud_callback (const sensor_msgs::PointCloud2ConstPtr& cloud_msg){
   pub_new_background.publish(output2);
 
   sensor_msgs::PointCloud2 output3;
-  pcl::toROSMsg (*filtered_cloud, output3);
+  pcl::toROSMsg (*new_scene, output3);
   output3.header.frame_id = "velodyne";
   pub_reference_frame.publish(output3);
 
@@ -318,7 +318,7 @@ int main(int argc, char **argv)
   sub = n.subscribe("/velodyne_points", 1, cloud_callback);
   pub_old_background = n.advertise<sensor_msgs::PointCloud2>("/old_background", 1);
   pub_new_background = n.advertise<sensor_msgs::PointCloud2>("/new_background", 1);
-  pub_reference_frame = n.advertise<sensor_msgs::PointCloud2>("/reference_frame", 1);
+  pub_reference_frame = n.advertise<sensor_msgs::PointCloud2>("/new_scene", 1);
 
   if (pcl::io::loadPCDFile<pcl::PointXYZ> ("background.pcd", *old_background) == -1) //* load the file
   {

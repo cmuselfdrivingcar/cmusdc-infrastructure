@@ -1,0 +1,8 @@
+prefix=/home/teame16/CMUSelfDrivingCar/install
+
+Name: trajectory_prediction
+Description: Description of trajectory_prediction
+Version: 0.0.0
+Cflags: 
+Libs: -L/home/teame16/CMUSelfDrivingCar/install/lib 
+Requires: 

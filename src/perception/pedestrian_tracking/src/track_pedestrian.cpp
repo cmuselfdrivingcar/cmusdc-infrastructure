@@ -12,18 +12,33 @@
 #include <pedestrian_tracking/PedestrianPoseList.h>
 
 ros::Subscriber centroid_sub;
+ros::Subscriber predicted_next_frame_sub;
 
 ros::Publisher pub_centroid_points;
 ros::Publisher pub_centroid_msg;
-pcl::PointXYZ previous_centroid(0.0f,0.0f,0.0f);
 
 bool isFirstTime = true;
 int count;
+
+pedestrian_tracking::PedestrianPoseList predictedPoseList;
+
+void predict_callback(const pedestrian_tracking::PedestrianPoseList& data) {
+  predictedPoseList = data;
+}
 
 void centroid_callback (const sensor_msgs::PointCloud2ConstPtr& cloud_msg){
 	pcl::PointCloud<pcl::PointXYZ>::Ptr centroids (new pcl::PointCloud<pcl::PointXYZ>);
   pcl::fromROSMsg (*cloud_msg, *centroids);
   float minDistance = FLT_MAX;
+
+  // TODO: mapping every pedestrian ID
+  float x = 0.0f;
+  float y = 0.0f;
+  if (!predictedPoseList.poses.empty()) {
+    x = predictedPoseList.poses[0].x;
+    y = predictedPoseList.poses[0].y;
+  }
+  pcl::PointXYZ previous_centroid(x,y,0.0f);
 
   int index=-1, i=0;
   for(pcl::PointCloud<pcl::PointXYZ>::iterator it = centroids->begin(); it!= centroids->end(); it++){
@@ -48,7 +63,7 @@ void centroid_callback (const sensor_msgs::PointCloud2ConstPtr& cloud_msg){
    //    previous_centroid = centroids->points[index];
    //    isFirstTime = false;
    //  }
-    previous_centroid = centroids->points[index];
+    // previous_centroid = centroids->points[index];
     // else if (minDistance < 0.5) {
     //   previous_centroid = centroids->points[index];
     // }
@@ -59,17 +74,24 @@ void centroid_callback (const sensor_msgs::PointCloud2ConstPtr& cloud_msg){
 	  pub_centroid_points.publish(track_output);
 	  
 	  // TODO: change to real tracking
-	  index = 1;
+	 //  index = 1;
+  //   pedestrian_tracking::PedestrianPoseList poselist;
+		// for(pcl::PointCloud<pcl::PointXYZ>::iterator it = centroids->begin(); it!= centroids->end(); it++){
+	 //  	pedestrian_tracking::PedestrianPose pose;
+		// 	pose.pedID = index;
+	 //  	pose.frameID = count;
+		// 	pose.x = it->x;
+		// 	pose.y = it->y;
+		// 	poselist.poses.push_back(pose);
+		// 	index++;
+		// }
     pedestrian_tracking::PedestrianPoseList poselist;
-		for(pcl::PointCloud<pcl::PointXYZ>::iterator it = centroids->begin(); it!= centroids->end(); it++){
-	  	pedestrian_tracking::PedestrianPose pose;
-			pose.pedID = index;
-	  	pose.frameID = count;
-			pose.x = it->x;
-			pose.y = it->y;
-			poselist.poses.push_back(pose);
-			index++;
-		}
+    pedestrian_tracking::PedestrianPose pose;
+    pose.pedID = 1;
+    pose.frameID = count;
+    pose.x = centroids->points[index].x;
+    pose.y = centroids->points[index].y;
+    poselist.poses.push_back(pose);
 
     poselist.header.stamp = ros::Time::now();
     poselist.header.frame_id = "velodyne";
@@ -85,6 +107,7 @@ int main(int argc, char **argv)
   ros::init(argc, argv, "track_pedestrian");
   ros::NodeHandle n;
   centroid_sub = n.subscribe("/centroid_points", 10, centroid_callback);
+  predicted_next_frame_sub = n.subscribe("/predicted_next_frame_point", 10, predict_callback);
   pub_centroid_points = n.advertise<sensor_msgs::PointCloud2>("/track_points", 10);
   pub_centroid_msg = n.advertise<pedestrian_tracking::PedestrianPoseList>("/track_points_msg", 10);
 

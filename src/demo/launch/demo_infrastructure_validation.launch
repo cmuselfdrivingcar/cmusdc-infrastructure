@@ -1,0 +1,9 @@
+<launch>
+  <include file="$(find velodyne_pointcloud)/launch/VLP16_points.launch">
+    <rosparam name="calibration" type="yaml" command="load" file="/home/teame16/catkin_ws/PUCK_Calibration_File_2deg.yaml" />
+  </include>
+  <node name="background_subtraction" pkg="background_subtraction" type="downsampling" output="screen"/>
+  <node name="pedestrian_tracking" pkg="pedestrian_tracking" type="track_pedestrian"/>
+  <node name="trajectory_prediction" pkg="trajectory_prediction" type="trajectory_prediction_validation.py" respawn="true" output="screen"/>
+  <node name="rviz" pkg="rviz" type="rviz" args="-f velodyne"/>
+</launch>

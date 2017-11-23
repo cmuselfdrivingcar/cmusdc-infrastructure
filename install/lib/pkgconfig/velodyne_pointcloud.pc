@@ -1,0 +1,8 @@
+prefix=/home/teame16/CMUSelfDrivingCar/install
+
+Name: velodyne_pointcloud
+Description: Description of velodyne_pointcloud
+Version: 1.2.0
+Cflags: -I/home/teame16/CMUSelfDrivingCar/install/include
+Libs: -L/home/teame16/CMUSelfDrivingCar/install/lib -lvelodyne_rawdata
+Requires: angles nodelet pcl_ros roscpp roslib sensor_msgs tf velodyne_driver velodyne_msgs dynamic_reconfigure

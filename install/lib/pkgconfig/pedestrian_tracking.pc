@@ -1,0 +1,8 @@
+prefix=/home/teame16/CMUSelfDrivingCar/install
+
+Name: pedestrian_tracking
+Description: Description of pedestrian_tracking
+Version: 0.0.0
+Cflags: -I/home/teame16/CMUSelfDrivingCar/install/include
+Libs: -L/home/teame16/CMUSelfDrivingCar/install/lib 
+Requires: message_runtime

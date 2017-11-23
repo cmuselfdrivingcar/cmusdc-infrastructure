@@ -1,0 +1,6 @@
+<launch>
+  <include file="$(find velodyne_pointcloud)/launch/VLP16_points.launch">
+    <rosparam name="calibration" type="yaml" command="load" file="/home/teame16/catkin_ws/PUCK_Calibration_File_2deg.yaml" />
+  </include>
+  <node name="pcd_to_pointcloud" pkg="pcl_ros" type="pcd_to_pointcloud" args="-input /velodyne_points"/>
+</launch>

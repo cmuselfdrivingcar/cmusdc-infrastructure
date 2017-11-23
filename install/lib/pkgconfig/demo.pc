@@ -1,0 +1,8 @@
+prefix=/home/teame16/CMUSelfDrivingCar/install
+
+Name: demo
+Description: Description of demo
+Version: 0.0.0
+Cflags: 
+Libs: -L/home/teame16/CMUSelfDrivingCar/install/lib 
+Requires: 

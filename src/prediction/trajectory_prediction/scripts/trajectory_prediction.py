@@ -5,9 +5,9 @@ from pedestrian_tracking.msg import PedestrianPose
 from pedestrian_tracking.msg import PedestrianPoseList
 from Queue import Queue, heapq, deque
 from nav_msgs.msg import Path
-from geometry_msgs.msg import Pose, PoseWithCovarianceStamped, Point, Quaternion, Twist, PoseStamped
+from geometry_msgs.msg import Pose, PoseWithCovarianceStamped, Point, Quaternion, Twist, PoseStamped, PoseArray
+
 from infrastructure_to_vehicle.msg import PointArray
-import tf
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -15,6 +15,7 @@ import matplotlib.pyplot as plt
 QUEUE_SIZE = 12
 prediction_length = 12
 polyfit_degree = 2
+isTest = True
 
 def callback(data):
     currentFrame = data.frameID
@@ -76,19 +77,22 @@ def callback(data):
         p_x = np.poly1d(p_x)
         p_y = np.poly1d(p_y)
 
+
         # shape_error = (prediction_length, 2)
         # error = np.zeros(shape_error)
         for i in range(prediction_length):
-            x_pred[i] = p_x(observation_length+i)
-            y_pred[i] = p_y(observation_length+i)
-            # error[i][0] = x_pred[i] - xs[i + observation_length]
-            # error[i][1] = y_pred[i] - ys[i + observation_length]
+            if isTest:
+                x_pred[i] = 8
+                y_pred[i] = 3.8 - i * 0.2
+            else:
+                x_pred[i] = p_x(observation_length+i)
+                y_pred[i] = p_y(observation_length+i)
+                # error[i][0] = x_pred[i] - xs[i + observation_length]
+                # error[i][1] = y_pred[i] - ys[i + observation_length]
 
-        # points_pred = list()
-
-        pointArray = PointArray()
-        pointArray.header.stamp = rospy.Time.now()
-        pointArray.header.frame_id = "velodyne";
+        poseArray = PoseArray()
+        poseArray.header.stamp = rospy.Time.now()
+        poseArray.header.frame_id = "velodyne";
 
         pose_list_pred = list()
         my_path_pred = Path()
@@ -97,18 +101,6 @@ def callback(data):
         pose_list_true = list()
         my_path_true = Path()
         my_path_true.header.frame_id = 'velodyne'
-	
-	# Hi PS, or Rohit, whoever you are. It's me, Oliver, I've added the
-	# code below.  
-	infrastructureToMapBroadcaster = tf.TransformBroadcaster()
-        TRANS_X = 12
-	TRANS_Y = -2.5
-	YAW = 3.14 #5PI/4
-	infrastructureToMapBroadcaster.sendTransform((TRANS_X, TRANS_Y, 0),
-		tf.transformations.quaternion_from_euler(0,0,YAW),
-		rospy.Time.now(),
-		"velodyne",
-		"map")
 
         for i in range(len(x_pred)):
             pose = PoseStamped()
@@ -117,16 +109,18 @@ def callback(data):
             loc.position.y = y_pred[i]
             pose.pose = loc
 
-            point = Point()
-            point.x = x_pred[i]
-            point.y = y_pred[i]
-            point.y = 1
+            #point = Point()
+            #point.x = x_pred[i]
+            #point.y = y_pred[i]
+            #point.z = 1
+
+            #poseArray.poses[i] = pose
 
             # pose.header.frame_id = '/odom'
             # pose.header.stamp = rospy.Time.now()
             pose_list_pred.append(pose)
             my_path_pred.poses.append(pose)
-            pointArray.points.append(point)
+            poseArray.poses.append(loc)
 
         for i in range(len(xs)):
             pose = PoseStamped()
@@ -150,7 +144,21 @@ def callback(data):
 
         path_pub.publish(my_path_true)
         predicted_path_pub.publish(my_path_pred)
-        predicted_point_pub.publish(pointArray)
+        print("About to publish pose array \n")
+        predicted_point_pub.publish(poseArray)
+
+        pedestrianPoseList = PedestrianPoseList()
+        pedestrianPoseList.frameID = currentFrame + 1;
+        pedestrianPoseList.header.stamp = rospy.Time.now()
+        pedestrianPoseList.header.frame_id = "velodyne"
+        pedestrianPose = PedestrianPose()
+        pedestrianPose.pedID = pedID
+        pedestrianPose.frameID = currentFrame + 1
+        pedestrianPose.x = x_pred[0]
+        pedestrianPose.y = y_pred[0]
+        pedestrianPoseList.poses.append(pedestrianPose)
+
+        predict_next_frame_pub.publish(pedestrianPoseList)
         break
         # print y_pred
 
@@ -171,11 +179,12 @@ def listener():
     rospy.init_node('listener', anonymous=True)
 
     rospy.Subscriber("/track_points_msg", PedestrianPoseList, callback)
-    global path_pub, predicted_path_pub, predicted_point_pub
+    global path_pub, predicted_path_pub, predicted_point_pub, predict_next_frame_pub
 
     path_pub = rospy.Publisher("/path",Path,queue_size=100)
     predicted_path_pub = rospy.Publisher("/predicted_path",Path,queue_size=100)
-    predicted_point_pub = rospy.Publisher("/predicted_points",PointArray,queue_size=100)
+    predicted_point_pub = rospy.Publisher("/predicted_points",PoseArray,queue_size=100)
+    predict_next_frame_pub = rospy.Publisher("/predicted_next_frame_point",PedestrianPoseList,queue_size=100)
     
     # spin() simply keeps python from exiting until this node is stopped
     rospy.spin()
